@@ -742,200 +742,93 @@ cursor:pointer;
 
 /* ================= SHAKE ERROR ================= */
 
-/* SHAKE ERROR PREMIUM */
+/* ================= SHAKE ERROR SUPER KUAT ================= */
+
+/* ================= SHAKE ERROR SUPER GILA ================= */
+
 .shake-error{
-animation: shakeError 0.15s linear infinite;
+animation: shakeError .9s cubic-bezier(.36,.07,.19,.97);
 }
 
 @keyframes shakeError{
 
-0%   { transform: translateX(0px); }
-20%  { transform: translateX(-12px); }
-40%  { transform: translateX(12px); }
-60%  { transform: translateX(-12px); }
-80%  { transform: translateX(12px); }
-100% { transform: translateX(0px); }
-
-}
-
-/* BACKGROUND MERAH BERKEDIP */
-.flash-red{
-animation: flashRed 0.4s linear infinite;
-}
-
-@keyframes flashRed{
-
 0%{
-background:#ff0000;
+transform:translate(0,0) rotate(0deg) scale(1);
+filter:blur(0);
+}
+
+5%{
+transform:translate(-35px,5px) rotate(-2deg) scale(1.02);
+}
+
+10%{
+transform:translate(35px,-5px) rotate(2deg) scale(1.03);
+}
+
+15%{
+transform:translate(-30px,4px) rotate(-2deg) scale(1.04);
+}
+
+20%{
+transform:translate(30px,-4px) rotate(2deg) scale(1.05);
+}
+
+25%{
+transform:translate(-28px,3px) rotate(-2deg) scale(1.04);
+}
+
+30%{
+transform:translate(28px,-3px) rotate(2deg) scale(1.05);
+}
+
+35%{
+transform:translate(-24px,2px) rotate(-1.5deg) scale(1.04);
+}
+
+40%{
+transform:translate(24px,-2px) rotate(1.5deg) scale(1.05);
+}
+
+45%{
+transform:translate(-20px,2px) rotate(-1deg) scale(1.03);
 }
 
 50%{
-background:#ffffff;
+transform:translate(20px,-2px) rotate(1deg) scale(1.04);
+}
+
+55%{
+transform:translate(-16px,1px) rotate(-1deg) scale(1.03);
+}
+
+60%{
+transform:translate(16px,-1px) rotate(1deg) scale(1.02);
+}
+
+65%{
+transform:translate(-12px,1px) rotate(-0.8deg);
+}
+
+70%{
+transform:translate(12px,-1px) rotate(0.8deg);
+}
+
+75%{
+transform:translate(-8px,0px);
+}
+
+80%{
+transform:translate(8px,0px);
+}
+
+90%{
+transform:translate(-3px,0px);
 }
 
 100%{
-background:#ff0000;
+transform:translate(0,0) rotate(0deg) scale(1);
+filter:blur(0);
 }
 
 }
 
-/* ================= PASSWORD BC ================= */
-
-.password-overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-display:none;
-justify-content:center;
-align-items:center;
-background:rgba(0,0,0,0.85);
-backdrop-filter:blur(6px);
-z-index:999999;
-}
-
-.password-modal{
-width:90%;
-max-width:380px;
-background:linear-gradient(145deg,#0f172a,#111827);
-padding:30px;
-border-radius:22px;
-text-align:center;
-
-border:2px solid #FF6A00;
-
-box-shadow:
-0 0 25px rgba(255,106,0,0.8),
-0 0 60px rgba(255,106,0,0.4);
-
-animation:passwordPop .25s ease;
-}
-
-@keyframes passwordPop{
-from{
-transform:scale(.7);
-opacity:0;
-}
-to{
-transform:scale(1);
-opacity:1;
-}
-}
-
-.password-icon{
-font-size:65px;
-margin-bottom:10px;
-filter:drop-shadow(0 0 10px #FF6A00);
-}
-
-.password-title{
-font-size:24px;
-font-weight:800;
-color:#fff;
-margin-bottom:5px;
-}
-
-.password-sub{
-font-size:13px;
-color:#aaa;
-margin-bottom:20px;
-}
-
-#passwordBCInput{
-width:100%;
-padding:15px;
-border:none;
-border-radius:14px;
-background:#020617;
-color:#fff;
-font-size:16px;
-text-align:center;
-
-box-shadow:
-inset 0 0 10px rgba(0,0,0,0.8),
-0 0 10px rgba(255,106,0,0.4);
-}
-
-#passwordBCInput:focus{
-outline:none;
-box-shadow:
-0 0 15px #FF6A00,
-0 0 30px rgba(255,106,0,0.7);
-}
-
-.password-error{
-margin-top:10px;
-height:18px;
-font-size:13px;
-font-weight:bold;
-color:#ff3b3b;
-text-shadow:0 0 10px red;
-}
-
-.password-buttons{
-display:flex;
-gap:10px;
-margin-top:20px;
-}
-
-.btn-batal-pass,
-.btn-login-pass{
-flex:1;
-padding:13px;
-border:none;
-border-radius:12px;
-font-weight:800;
-cursor:pointer;
-font-size:14px;
-}
-
-.btn-batal-pass{
-background:#374151;
-color:#fff;
-}
-
-.btn-login-pass{
-background:linear-gradient(135deg,#FF6A00,#ff8c42);
-color:#fff;
-
-box-shadow:
-0 0 15px rgba(255,106,0,0.7);
-}
-
-.shake-error{
-animation: shake 0.3s infinite;
-}
-
-.flash-red{
-animation: flashRed 0.5s infinite;
-}
-
-@keyframes shake{
-0%{transform:translateX(0);}
-25%{transform:translateX(-10px);}
-50%{transform:translateX(10px);}
-75%{transform:translateX(-10px);}
-100%{transform:translateX(0);}
-}
-
-@keyframes flashRed{
-0%{background:#fff;}
-50%{background:#ff0000;}
-100%{background:#fff;}
-}
-
-.error{
-background:#ff0000;
-color:white;
-font-size:28px;
-font-weight:bold;
-padding:20px;
-animation: blink 0.5s infinite;
-}
-
-@keyframes blink{
-0%{opacity:1;}
-50%{opacity:0.3;}
-100%{opacity:1;}
-}
