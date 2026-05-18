@@ -2148,15 +2148,10 @@ console.log("Audio gagal:", err);
 
 });
 
-// 🔥 GOYANG BODY
+// 🔥 GOYANG BODY KUAT
 document.body.classList.remove("shake-error");
 void document.body.offsetWidth;
 document.body.classList.add("shake-error");
-
-// 🔴 BACKGROUND MERAH KEDIP
-document.body.classList.remove("flash-red");
-void document.body.offsetWidth;
-document.body.classList.add("flash-red");
 
 // 🚨 NOTIF
 showNotif(
@@ -2169,7 +2164,6 @@ showNotif(
 setTimeout(()=>{
 
 document.body.classList.remove("shake-error");
-document.body.classList.remove("flash-red");
 
 },5000);
 
