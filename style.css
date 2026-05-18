@@ -1,0 +1,941 @@
+/* SEMBUNYIKAN DI LAYAR */
+.ttd-card{
+display: none;
+}
+
+/* TAMPIL SAAT PRINT */
+@media print{
+.ttd-card{
+display: block !important;
+}
+}
+
+:root{
+--navy:#0F172A;
+--navy2:#1E293B;
+--orange:#FF6A00;
+--orange2:#ff7e29;
+--bg:#0b1220;
+--card:#111827;
+--glass:rgba(255,255,255,0.05);
+}
+
+*{
+box-sizing:border-box;
+transition:all .3s ease;
+}
+
+body{
+margin:0;
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#0b1220,#0F172A 40%,#111827);
+color:white;
+}
+
+/* ================= HEADER ================= */
+.header{
+background:linear-gradient(135deg,var(--navy),#111827);
+padding:30px 15px 25px;
+text-align:center;
+position:relative;
+box-shadow:0 10px 40px rgba(0,0,0,0.6);
+border-bottom:2px solid rgba(255,106,0,0.3);
+}
+
+/* LOGO */
+.logo-wrapper{
+display:flex;
+justify-content:center;
+margin-bottom:15px;
+}
+
+.logo-circle{
+width:160px;
+height:160px;
+border-radius:50%;
+background:linear-gradient(145deg,#0f172a,#1e293b);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+box-shadow:
+0 0 30px rgba(255,106,0,0.8),
+0 0 60px rgba(255,106,0,0.4),
+inset 0 0 15px rgba(255,255,255,0.05);
+border:3px solid #FF6A00;
+}
+
+.logo-circle img{
+width:85%;
+height:85%;
+object-fit:contain;
+}
+
+.header-title{
+font-weight:700;
+font-size:18px;
+letter-spacing:1px;
+color:white;
+text-shadow:0 0 10px rgba(255,106,0,0.6);
+}
+
+/* ================= CONTAINER ================= */
+.container{
+padding:20px;
+max-width:900px;
+margin:auto;
+}
+
+/* ================= CARD ================= */
+.card{
+background:var(--card);
+padding:18px;
+border-radius:18px;
+margin-bottom:20px;
+box-shadow:
+0 8px 25px rgba(0,0,0,0.6),
+inset 0 0 20px rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.05);
+}
+
+/* ================= FORM ================= */
+label{
+font-weight:600;
+font-size:13px;
+color:#cbd5e1;
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:6px;
+margin-bottom:14px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,0.1);
+background:#0f172a;
+color:white;
+box-shadow:
+inset 0 0 10px rgba(0,0,0,0.6),
+0 0 8px rgba(255,106,0,0.2);
+}
+
+input:focus{
+outline:none;
+border:1px solid var(--orange);
+box-shadow:
+0 0 12px var(--orange),
+inset 0 0 10px rgba(0,0,0,0.7);
+transform:translateY(-2px);
+}
+
+/* ================= BUTTON ================= */
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+font-weight:600;
+cursor:pointer;
+margin-top:10px;
+letter-spacing:0.5px;
+}
+
+.btn-primary{
+background:linear-gradient(135deg,var(--navy),#1e293b);
+color:white;
+box-shadow:0 0 12px rgba(255,106,0,0.4);
+}
+
+.btn-orange{
+background:linear-gradient(135deg,var(--orange),var(--orange2));
+color:white;
+box-shadow:0 0 15px rgba(255,106,0,0.7);
+}
+
+.btn-success{
+background:linear-gradient(135deg,#16a34a,#22c55e);
+color:white;
+box-shadow:0 0 12px rgba(34,197,94,0.6);
+}
+
+.btn-danger{
+background:linear-gradient(135deg,#b91c1c,#ef4444);
+color:white;
+box-shadow:0 0 12px rgba(239,68,68,0.6);
+}
+
+.btn-excel{
+background:linear-gradient(135deg,#d97706,#f59e0b);
+color:white;
+box-shadow:0 0 12px rgba(245,158,11,0.6);
+}
+
+button:hover{
+transform:translateY(-3px);
+box-shadow:0 8px 20px rgba(255,106,0,0.6);
+}
+
+                    /* ================= TABLE ================= */
+table{
+width:100%;
+border-collapse:collapse;
+font-size:13px;
+border-radius:12px;
+overflow:hidden;
+}
+
+th{
+background:linear-gradient(135deg,var(--navy),#1e293b);
+color:white;
+padding:10px;
+}
+
+td{
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,0.05);
+text-align:center;
+color:#e2e8f0;
+}
+
+tr:hover{
+background:rgba(255,106,0,0.08);
+}
+
+/* ================= COUNTER ================= */
+#scanCounter{
+font-size:16px;
+font-weight:700;
+color:var(--orange);
+text-shadow:0 0 10px var(--orange);
+}
+
+/* ================= NOTIF ================= */
+.success{
+color:#22c55e;
+font-weight:600;
+}
+
+.error{
+color:#ef4444;
+font-weight:600;
+}
+
+/* ================= SIGNATURE ================= */
+canvas{
+width:100%;
+max-width:300px;
+border-radius:12px;
+background:white;
+}
+
+/* ================= TOTAL BERAT SUPER KEREN ================= */
+.total-box{
+margin-top:15px;
+text-align:center;
+font-size:20px;
+font-weight:700;
+padding:15px;
+border-radius:16px;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+box-shadow:
+0 0 20px rgba(255,106,0,0.6),
+inset 0 0 20px rgba(255,255,255,0.05);
+border:2px solid rgba(255,106,0,0.4);
+color:#FF6A00;
+text-shadow:
+0 0 10px #FF6A00,
+0 0 20px rgba(255,106,0,0.7);
+letter-spacing:1px;
+}
+
+#totalBerat{
+font-size:24px;
+font-weight:900;
+color:#ffffff;
+text-shadow:
+0 0 10px #ffffff,
+0 0 20px #FF6A00,
+0 0 30px #FF6A00;
+}
+
+/* ================= FORM NEON TIMBUL ================= */
+input{
+width:100%;
+padding:14px;
+margin-top:6px;
+margin-bottom:14px;
+border-radius:16px;
+border:1px solid rgba(255,255,255,0.1);
+background:linear-gradient(145deg,#0f172a,#111827);
+color:white;
+font-weight:500;
+box-shadow:
+6px 6px 15px rgba(0,0,0,0.6),
+-4px -4px 12px rgba(255,255,255,0.03),
+inset 0 0 10px rgba(0,0,0,0.7);
+}
+
+input:focus{
+outline:none;
+border:1px solid #FF6A00;
+box-shadow:
+0 0 15px #FF6A00,
+0 0 30px rgba(255,106,0,0.6),
+inset 0 0 15px rgba(0,0,0,0.8);
+transform:translateY(-3px) scale(1.02);
+}
+
+/* ================= LABEL LEBIH MODERN ================= */
+label{
+font-weight:600;
+font-size:13px;
+color:#e2e8f0;
+letter-spacing:0.5px;
+text-transform:uppercase;
+text-shadow:
+0 0 5px rgba(255,255,255,0.2);
+}
+
+/* ================= LOGO PROPORSIONAL ================= */
+.logo-circle{
+width:110px;
+height:110px;
+border-radius:50%;
+background:linear-gradient(145deg,#0f172a,#1e293b);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+box-shadow:
+0 0 25px rgba(255,106,0,0.7),
+0 0 50px rgba(255,106,0,0.4),
+inset 0 0 15px rgba(255,255,255,0.05);
+border:2px solid #FF6A00;
+}
+
+.logo-circle img{
+width:75%;
+height:75%;
+object-fit:contain;
+}
+
+                    /* =========================
+SUKSES SCAN LEBIH BESAR
+========================= */
+#scanCounter{
+font-size:22px !important;
+font-weight:900 !important;
+letter-spacing:1px;
+text-align:center;
+padding:10px;
+border-radius:14px;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+border:2px solid rgba(255,106,0,0.4);
+box-shadow:
+0 0 15px rgba(255,106,0,0.6),
+inset 0 0 15px rgba(255,255,255,0.05);
+color:#FF6A00;
+text-shadow:
+0 0 10px #FF6A00,
+0 0 20px rgba(255,106,0,0.7);
+animation:glowScan 2s infinite alternate;
+}
+
+@keyframes glowScan{
+from{
+box-shadow:
+0 0 10px rgba(255,106,0,0.4),
+inset 0 0 10px rgba(255,255,255,0.05);
+}
+to{
+box-shadow:
+0 0 25px rgba(255,106,0,0.9),
+0 0 40px rgba(255,106,0,0.5),
+inset 0 0 15px rgba(255,255,255,0.08);
+}
+}
+
+/* =========================
+NOTIF REQUEST & SUCCESS
+========================= */
+.success,
+.error{
+font-size:35px;
+font-weight:700;
+text-align:center;
+padding:8px;
+border-radius:12px;
+letter-spacing:0.5px;
+animation:notifGlow 1.5s ease-in-out infinite alternate;
+}
+
+.success{
+color:#22c55e;
+text-shadow:0 0 10px #22c55e;
+}
+
+.error{
+color:#ef4444;
+text-shadow:0 0 10px #ef4444;
+}
+
+@keyframes notifGlow{
+from{opacity:0.8;}
+to{opacity:1;}
+}
+
+/* =========================
+TOMBOL HIDUP / BERNAFAS
+========================= */
+button{
+position:relative;
+overflow:hidden;
+transition:all 0.3s ease;
+}
+
+button::after{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
+width:100%;
+height:100%;
+background:linear-gradient(
+120deg,
+transparent,
+rgba(255,255,255,0.3),
+transparent
+);
+transition:all 0.6s;
+}
+
+button:hover::after{
+left:100%;
+}
+
+button:hover{
+transform:translateY(-4px) scale(1.03);
+}
+
+/* efek denyut pelan */
+button{
+animation:buttonPulse 3s infinite ease-in-out;
+}
+
+@keyframes buttonPulse{
+0%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+50%{box-shadow:0 0 20px rgba(255,106,0,0.8);}
+100%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+}
+
+/* 🔥 TOMBOL KELUAR CYBER NEON */
+#btnKeluar{
+position:absolute;
+top:18px;
+right:25px;
+padding:10px 20px;
+background:linear-gradient(135deg,#FF6A00,#FFD700);
+color:#fff;
+font-weight:900;
+font-size:14px;
+border-radius:12px;
+text-decoration:none;
+text-transform:uppercase;
+box-shadow:
+0 0 10px #FF6A00,
+0 0 20px #FFD700,
+0 0 30px rgba(255,215,0,0.6);
+z-index:999;
+overflow:hidden;
+transition:all 0.3s ease;
+}
+
+/* Neon Sweep Light Animation */
+#btnKeluar::after{
+content:'';
+position:absolute;
+top:0;
+left:-100%;
+width:50%;
+height:100%;
+background:linear-gradient(120deg,transparent,rgba(255,255,255,0.6),transparent);
+transform:skewX(-25deg);
+animation:sweep 2.5s infinite;
+}
+
+@keyframes sweep{
+0%{left:-100%;}
+100%{left:150%;}
+}
+
+/* Hover efek glowing */
+#btnKeluar:hover{
+box-shadow:
+0 0 15px #FF6A00,
+0 0 35px #FFD700,
+0 0 60px rgba(255,215,0,0.8);
+transform:translateY(-2px) scale(1.05);
+}
+
+#btnKeluar:active{
+transform:scale(0.97);
+}
+
+/* ================= BOX INPUT BERAT ================= */
+
+.berat-overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+}
+
+.berat-modal{
+width:320px;
+background:linear-gradient(145deg,#0f172a,#111827);
+border-radius:18px;
+padding:25px;
+text-align:center;
+
+box-shadow:
+0 0 25px rgba(255,106,0,0.8),
+0 0 60px rgba(255,106,0,0.4),
+inset 0 0 20px rgba(255,255,255,0.05);
+
+border:2px solid #FF6A00;
+animation:popBerat 0.3s ease;
+}
+
+@keyframes popBerat{
+from{transform:scale(0.7);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+.berat-title{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+color:#FF6A00;
+text-shadow:0 0 10px #FF6A00;
+}
+
+.berat-barcode{
+font-size:14px;
+margin-bottom:15px;
+color:#e2e8f0;
+}
+
+#inputBeratKg{
+width:100%;
+padding:14px;
+font-size:18px;
+text-align:center;
+border-radius:12px;
+border:none;
+background:#020617;
+color:#fff;
+
+box-shadow:
+inset 0 0 10px rgba(0,0,0,0.7),
+0 0 10px rgba(255,106,0,0.4);
+}
+
+.berat-buttons{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+/* ================= MODAL BC ================= */
+
+.modal-bc{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:99999;
+backdrop-filter:blur(4px);
+}
+
+.modal-content-bc{
+width:90%;
+max-width:500px;
+background:#111;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 0 30px rgba(255,106,0,0.4);
+animation:zoomBC 0.25s ease;
+border:2px solid #FF6A00;
+}
+
+@keyframes zoomBC{
+from{
+transform:scale(0.7);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.modal-header-bc{
+padding:18px;
+background:#FF6A00;
+color:#fff;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.modal-header-bc h2{
+margin:0;
+font-size:22px;
+}
+
+.modal-header-bc p{
+margin:2px 0 0;
+font-size:12px;
+}
+
+.close-bc{
+background:linear-gradient(135deg,#ff0000,#ff4d4d);
+border:none;
+color:#fff;
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
+width:42px;
+height:42px;
+border-radius:12px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+box-shadow:
+0 0 10px rgba(255,0,0,0.7),
+0 0 20px rgba(255,0,0,0.4);
+
+transition:all .25s ease;
+}
+
+/* HOVER */
+.close-bc:hover{
+transform:scale(1.08) rotate(90deg);
+
+box-shadow:
+0 0 18px rgba(255,0,0,1),
+0 0 35px rgba(255,0,0,0.7);
+
+background:linear-gradient(135deg,#ff1a1a,#ff6666);
+}
+
+/* KLIK */
+.close-bc:active{
+transform:scale(0.92);
+}
+
+.modal-body-bc{
+padding:20px;
+}
+
+.upload-area-bc{
+border:2px dashed #FF6A00;
+border-radius:15px;
+padding:30px;
+text-align:center;
+background:#1a1a1a;
+}
+
+.upload-icon{
+font-size:55px;
+margin-bottom:10px;
+}
+
+.upload-text{
+font-size:18px;
+font-weight:bold;
+color:#fff;
+}
+
+.upload-sub{
+font-size:12px;
+color:#aaa;
+margin-top:5px;
+}
+
+.btn-upload-bc{
+margin-top:20px;
+background:#FF6A00;
+border:none;
+padding:12px 25px;
+border-radius:10px;
+font-weight:bold;
+color:#fff;
+cursor:pointer;
+font-size:15px;
+}
+
+.info-bc{
+margin-top:15px;
+font-size:14px;
+text-align:center;
+color:#00ff90;
+font-weight:bold;
+}
+
+.modal-footer-bc{
+display:flex;
+gap:10px;
+padding:15px;
+background:#0d0d0d;
+}
+
+.btn-batal-bc,
+.btn-kirim-bc,
+.btn-hapus-bc{
+flex:1;
+padding:12px;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+font-size:14px;
+}
+
+.btn-batal-bc{
+background:#444;
+color:#fff;
+}
+
+.btn-kirim-bc{
+background:#FF6A00;
+color:#fff;
+}
+
+.btn-hapus-bc{
+background:#ff0000;
+color:#fff;
+}
+
+.btn-bc{
+background:#FF6A00;
+color:#fff;
+border:none;
+padding:12px 20px;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* ================= SHAKE ERROR ================= */
+
+/* SHAKE ERROR PREMIUM */
+.shake-error{
+animation: shakeError 0.15s linear infinite;
+}
+
+@keyframes shakeError{
+
+0%   { transform: translateX(0px); }
+20%  { transform: translateX(-12px); }
+40%  { transform: translateX(12px); }
+60%  { transform: translateX(-12px); }
+80%  { transform: translateX(12px); }
+100% { transform: translateX(0px); }
+
+}
+
+/* BACKGROUND MERAH BERKEDIP */
+.flash-red{
+animation: flashRed 0.4s linear infinite;
+}
+
+@keyframes flashRed{
+
+0%{
+background:#ff0000;
+}
+
+50%{
+background:#ffffff;
+}
+
+100%{
+background:#ff0000;
+}
+
+}
+
+/* ================= PASSWORD BC ================= */
+
+.password-overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,0.85);
+backdrop-filter:blur(6px);
+z-index:999999;
+}
+
+.password-modal{
+width:90%;
+max-width:380px;
+background:linear-gradient(145deg,#0f172a,#111827);
+padding:30px;
+border-radius:22px;
+text-align:center;
+
+border:2px solid #FF6A00;
+
+box-shadow:
+0 0 25px rgba(255,106,0,0.8),
+0 0 60px rgba(255,106,0,0.4);
+
+animation:passwordPop .25s ease;
+}
+
+@keyframes passwordPop{
+from{
+transform:scale(.7);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.password-icon{
+font-size:65px;
+margin-bottom:10px;
+filter:drop-shadow(0 0 10px #FF6A00);
+}
+
+.password-title{
+font-size:24px;
+font-weight:800;
+color:#fff;
+margin-bottom:5px;
+}
+
+.password-sub{
+font-size:13px;
+color:#aaa;
+margin-bottom:20px;
+}
+
+#passwordBCInput{
+width:100%;
+padding:15px;
+border:none;
+border-radius:14px;
+background:#020617;
+color:#fff;
+font-size:16px;
+text-align:center;
+
+box-shadow:
+inset 0 0 10px rgba(0,0,0,0.8),
+0 0 10px rgba(255,106,0,0.4);
+}
+
+#passwordBCInput:focus{
+outline:none;
+box-shadow:
+0 0 15px #FF6A00,
+0 0 30px rgba(255,106,0,0.7);
+}
+
+.password-error{
+margin-top:10px;
+height:18px;
+font-size:13px;
+font-weight:bold;
+color:#ff3b3b;
+text-shadow:0 0 10px red;
+}
+
+.password-buttons{
+display:flex;
+gap:10px;
+margin-top:20px;
+}
+
+.btn-batal-pass,
+.btn-login-pass{
+flex:1;
+padding:13px;
+border:none;
+border-radius:12px;
+font-weight:800;
+cursor:pointer;
+font-size:14px;
+}
+
+.btn-batal-pass{
+background:#374151;
+color:#fff;
+}
+
+.btn-login-pass{
+background:linear-gradient(135deg,#FF6A00,#ff8c42);
+color:#fff;
+
+box-shadow:
+0 0 15px rgba(255,106,0,0.7);
+}
+
+.shake-error{
+animation: shake 0.3s infinite;
+}
+
+.flash-red{
+animation: flashRed 0.5s infinite;
+}
+
+@keyframes shake{
+0%{transform:translateX(0);}
+25%{transform:translateX(-10px);}
+50%{transform:translateX(10px);}
+75%{transform:translateX(-10px);}
+100%{transform:translateX(0);}
+}
+
+@keyframes flashRed{
+0%{background:#fff;}
+50%{background:#ff0000;}
+100%{background:#fff;}
+}
+
+.error{
+background:#ff0000;
+color:white;
+font-size:28px;
+font-weight:bold;
+padding:20px;
+animation: blink 0.5s infinite;
+}
+
+@keyframes blink{
+0%{opacity:1;}
+50%{opacity:0.3;}
+100%{opacity:1;}
+}
