@@ -832,3 +832,213 @@ filter:blur(0);
 
 }
 
+/* ================= PASSWORD OVERLAY ================= */
+
+.password-overlay{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+background:rgba(0,0,0,0.65);
+
+z-index:99999;
+
+backdrop-filter:blur(4px);
+
+animation:fadeIn .25s ease;
+
+}
+
+/* ================= MODAL PASSWORD ================= */
+
+.password-modal{
+
+width:90%;
+max-width:380px;
+
+background:#fff;
+
+border-radius:22px;
+
+padding:30px 25px;
+
+box-shadow:
+0 10px 40px rgba(0,0,0,0.35);
+
+text-align:center;
+
+animation:zoomIn .25s ease;
+
+}
+
+/* ICON */
+
+.password-icon{
+
+font-size:55px;
+margin-bottom:10px;
+
+}
+
+/* TITLE */
+
+.password-title{
+
+font-size:24px;
+font-weight:700;
+color:#111;
+
+margin-bottom:8px;
+
+}
+
+/* SUBTITLE */
+
+.password-sub{
+
+font-size:14px;
+color:#666;
+
+margin-bottom:20px;
+
+}
+
+/* INPUT */
+
+#passwordBCInput{
+
+width:100%;
+
+padding:14px;
+
+border-radius:12px;
+
+border:2px solid #ddd;
+
+font-size:16px;
+
+outline:none;
+
+transition:0.2s;
+
+box-sizing:border-box;
+
+}
+
+#passwordBCInput:focus{
+
+border-color:#FF6A00;
+
+box-shadow:0 0 10px rgba(255,106,0,0.3);
+
+}
+
+/* ERROR */
+
+.password-error{
+
+color:red;
+font-size:13px;
+
+margin-top:10px;
+min-height:18px;
+
+}
+
+/* BUTTON AREA */
+
+.password-buttons{
+
+display:flex;
+gap:10px;
+
+margin-top:20px;
+
+}
+
+/* BUTTON */
+
+.password-buttons button{
+
+flex:1;
+
+padding:13px;
+
+border:none;
+
+border-radius:12px;
+
+font-weight:700;
+
+cursor:pointer;
+
+transition:0.2s;
+
+}
+
+/* BATAL */
+
+.btn-batal-pass{
+
+background:#ddd;
+color:#333;
+
+}
+
+.btn-batal-pass:hover{
+
+background:#c5c5c5;
+
+}
+
+/* MASUK */
+
+.btn-login-pass{
+
+background:#FF6A00;
+color:white;
+
+}
+
+.btn-login-pass:hover{
+
+transform:scale(1.03);
+
+background:#e55f00;
+
+}
+
+/* ANIMATION */
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+}
+
+to{
+opacity:1;
+}
+
+}
+
+@keyframes zoomIn{
+
+from{
+transform:scale(0.8);
+opacity:0;
+}
+
+to{
+transform:scale(1);
+opacity:1;
+}
+
+}
