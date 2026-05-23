@@ -1351,7 +1351,24 @@ document.getElementById(id).addEventListener("input", ()=>{
 
 kirimFormKeFirebase();
 
+// khusus tujuan langsung sync realtime
+if(id === "tujuan"){
+
+roomFormRef.child("tujuan").set(
+document.getElementById("tujuan").value
+);
+
+}
+
 });
+
+});
+
+// REALTIME KHUSUS TUJUAN
+document.getElementById("tujuan")
+.addEventListener("change", function(){
+
+roomFormRef.child("tujuan").set(this.value);
 
 });
 
@@ -1362,13 +1379,34 @@ const data = snapshot.val();
 
 if(!data) return;
 
+// update hanya jika beda
+if(document.getElementById("petugas").value !== (data.petugas || "")){
 document.getElementById("petugas").value = data.petugas || "";
+}
+
+if(document.getElementById("driver").value !== (data.driver || "")){
 document.getElementById("driver").value = data.driver || "";
+}
+
+if(document.getElementById("nopol").value !== (data.nopol || "")){
 document.getElementById("nopol").value = data.nopol || "";
+}
+
+if(document.getElementById("angkutan").value !== (data.angkutan || "")){
 document.getElementById("angkutan").value = data.angkutan || "";
+}
+
+if(document.getElementById("mode").value !== (data.mode || "")){
 document.getElementById("mode").value = data.mode || "";
+}
+
+if(document.getElementById("nosurat").value !== (data.nosurat || "")){
 document.getElementById("nosurat").value = data.nosurat || "";
+}
+
+if(document.getElementById("tujuan").value !== (data.tujuan || "")){
 document.getElementById("tujuan").value = data.tujuan || "";
+}
 
 });
 
