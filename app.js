@@ -321,8 +321,7 @@ function hapusBaris(btn,barcode){
 // 🔥 HAPUS DARI FIREBASE (INI YANG KURANG)
 roomDataRef.child(barcode).remove();
 
-// Hapus dari tabel
-btn.parentNode.parentNode.remove();
+
 
 // Hapus dari array lokal
 scannedBarcodes = scannedBarcodes.filter(b=>b!==barcode);
@@ -345,20 +344,6 @@ rows[i].cells[0].innerText=i;
 
 }
 
-function kirimFormKeFirebase(){
-
-const formData = {
-petugas: document.getElementById("petugas").value,
-driver: document.getElementById("driver").value,
-nopol: document.getElementById("nopol").value,
-angkutan: document.getElementById("angkutan").value,
-mode: document.getElementById("mode").value,
-nosurat: document.getElementById("nosurat").value
-};
-
-roomFormRef.set(formData);
-
-}
 
 ["petugas","driver","nopol","angkutan","mode","nosurat","tujuan"].forEach(id=>{
 
@@ -797,14 +782,6 @@ let tujuan=document.getElementById("tujuan").value;
 
 let wb = XLSX.utils.book_new();
 
-let perColumn = 40;
-let totalColumnGroup = 2;
-let perPage = perColumn * totalColumnGroup;
-
-let totalPages = Math.ceil(scannedBarcodes.length / perPage);
-
-for(let p=0; p<totalPages; p++){
-
 let ws = {};
 let merges = [];
 
@@ -868,7 +845,7 @@ vertical:"center"
 
 merges.push({
 s:{r:0,c:0},
-e:{r:0,c:7}
+e:{r:0,c:3}
 });
 
 row++;
@@ -894,19 +871,12 @@ vertical:"center"
 
 merges.push({
 s:{r:1,c:0},
-e:{r:1,c:7}
+e:{r:1,c:3}
 });
 
 row += 2;
 
 // ================= INFO =================
-
-// ================= INFO =================
-
-if(p===0){
-
-// JARAK SETELAH JUDUL
-row += 1;
 
 const info = [
 ["Nama Driver",driver],
@@ -919,16 +889,10 @@ const info = [
 
 info.forEach(i=>{
 
-// LABEL
 cell(row,1,i[0],true);
-
-// :
 cell(row,2,":",true);
-
-// VALUE
 cell(row,3,i[1],true);
 
-// STYLE LABEL KIRI
 ws[XLSX.utils.encode_cell({r:row-1,c:0})].s = {
 font:{
 bold:true,
@@ -941,7 +905,6 @@ vertical:"center"
 }
 };
 
-// STYLE :
 ws[XLSX.utils.encode_cell({r:row-1,c:1})].s = {
 font:{
 bold:true,
@@ -954,7 +917,6 @@ vertical:"center"
 }
 };
 
-// STYLE VALUE
 ws[XLSX.utils.encode_cell({r:row-1,c:2})].s = {
 font:{
 bold:true,
@@ -967,62 +929,43 @@ vertical:"center"
 }
 };
 
-// MERGE VALUE AGAR PANJANG
 merges.push({
 s:{r:row-1,c:2},
-e:{r:row-1,c:5}
+e:{r:row-1,c:3}
 });
 
 row++;
 
 });
-
-}
 
 row += 1;
 
 // ================= HEADER TABEL =================
 
-for(let g=0; g<2; g++){
-
-let c = (g*4)+1;
-
-cell(row,c,"No",true,true);
-cell(row,c+1,"NO KANTONG",true,true);
-cell(row,c+2,"PRODUK",true,true);
-cell(row,c+3,"BERAT (KG)",true,true);
-
-}
+cell(row,1,"No",true,true);
+cell(row,2,"NO KANTONG",true,true);
+cell(row,3,"PRODUK",true,true);
+cell(row,4,"BERAT (KG)",true,true);
 
 row++;
 
 // ================= DATA =================
 
-let start = p * perPage;
+for(let i=0; i<scannedBarcodes.length; i++){
 
-for(let i=0; i<perColumn; i++){
-
-for(let g=0; g<2; g++){
-
-let indexData = start + (g*perColumn) + i;
-
-let c = (g*4)+1;
-
-if(scannedBarcodes[indexData]){
-
-let barcode = scannedBarcodes[indexData];
+let barcode = scannedBarcodes[i];
 
 let data = scannedData.find(d=>d.barcode===barcode);
 
-cell(row,c,String(indexData+1));
+cell(row,1,String(i+1));
 
-cell(row,c+1,barcode);
+cell(row,2,barcode);
 
-cell(row,c+2,"ECO");
+cell(row,3,"ECO");
 
 cell(
 row,
-c+3,
+4,
 data
 ? data.berat.toLocaleString("id-ID",{
 minimumFractionDigits:2,
@@ -1031,75 +974,31 @@ maximumFractionDigits:2
 : "0.00"
 );
 
-}else{
-
-cell(row,c,"");
-cell(row,c+1,"");
-cell(row,c+2,"");
-cell(row,c+3,"");
-
-}
-
-}
-
 row++;
 
 }
 
 // ================= TOTAL =================
-// ================= TOTAL =================
-
-if(p===totalPages-1){
 
 row += 2;
 
-// =====================================
-// HEADER TOTAL
-// =====================================
-
 cell(row,1,"TOTAL KANTONG",true,true);
-cell(row,3,"PRODUK",true,true);
-cell(row,5,"TOTAL BERAT (KG)",true,true);
-
-// MERGE HEADER
-merges.push({
-s:{r:row-1,c:0},
-e:{r:row-1,c:1}
-});
-
-merges.push({
-s:{r:row-1,c:2},
-e:{r:row-1,c:3}
-});
-
-merges.push({
-s:{r:row-1,c:4},
-e:{r:row-1,c:5}
-});
-
-row++;
-
-// =====================================
-// ISI TOTAL
-// =====================================
-
-cell(
-row,
-1,
+cell(row,2,
 scannedBarcodes.length.toLocaleString("id-ID"),
 true
 );
 
-cell(
-row,
-3,
-"E-COMMERCE",
-true
-);
+row++;
 
+cell(row,1,"PRODUK",true,true);
+cell(row,2,"E-COMMERCE",true);
+
+row++;
+
+cell(row,1,"TOTAL BERAT (KG)",true,true);
 cell(
 row,
-5,
+2,
 scannedData
 .reduce((s,d)=>s+d.berat,0)
 .toLocaleString("id-ID",{
@@ -1109,103 +1008,38 @@ maximumFractionDigits:2
 true
 );
 
-// MERGE ISI
-merges.push({
-s:{r:row-1,c:0},
-e:{r:row-1,c:1}
-});
-
-merges.push({
-s:{r:row-1,c:2},
-e:{r:row-1,c:3}
-});
-
-merges.push({
-s:{r:row-1,c:4},
-e:{r:row-1,c:5}
-});
-
 row += 4;
 
-// =====================================
-// HEADER TTD
-// =====================================
+// ================= TTD =================
 
 cell(row,1,"KANTOR ASAL",true);
-cell(row,3,"ANGKUTAN",true);
-cell(row,5,"KANTOR TUJUAN",true);
-cell(row,7,"QR",true);
-
-// MERGE HEADER TTD
-merges.push({
-s:{r:row-1,c:0},
-e:{r:row-1,c:1}
-});
-
-merges.push({
-s:{r:row-1,c:2},
-e:{r:row-1,c:3}
-});
-
-merges.push({
-s:{r:row-1,c:4},
-e:{r:row-1,c:5}
-});
+cell(row,3,"QR",true);
 
 row += 5;
 
-// =====================================
-// ISI TTD
-// =====================================
-
 cell(row,1,petugas);
-cell(row,7,"Lihat QR di PDF");
-
-// MERGE ISI
-merges.push({
-s:{r:row-1,c:0},
-e:{r:row-1,c:1}
-});
-
-merges.push({
-s:{r:row-1,c:2},
-e:{r:row-1,c:3}
-});
-
-merges.push({
-s:{r:row-1,c:4},
-e:{r:row-1,c:5}
-});
-
-}
+cell(row,3,"Lihat QR di PDF");
 
 // ================= LEBAR KOLOM =================
 
 ws["!cols"] = [
 
-{wch:6},   // NO
-{wch:24},  // BARCODE
-{wch:12},  // PRODUK
-{wch:14},  // BERAT
-
-{wch:6},   // NO
-{wch:24},  // BARCODE
-{wch:12},  // PRODUK
-{wch:14}   // BERAT
+{wch:8},
+{wch:35},
+{wch:15},
+{wch:18}
 
 ];
 
 ws["!merges"] = merges;
 
-ws["!ref"] = "A1:H"+row;
+ws["!ref"] = "A1:D"+row;
 
 XLSX.utils.book_append_sheet(
 wb,
 ws,
-"Halaman_"+(p+1)
+"DATA_R7"
 );
-
-}
 
 // ================= SAVE FILE =================
 
@@ -1228,7 +1062,13 @@ wb,
 
 // LOAD DATA SAAT PAGE DIBUKA
 window.onload = function(){
-loadLocal();
+
+// load form saja
+loadFormR7();
+
+// data scan FULL dari firebase realtime
+// jadi tidak perlu loadLocal lagi
+
 };
 
                                                                                                                                                                                   // =============================
@@ -1419,79 +1259,70 @@ timestamp: Date.now()
 }
 
 // =============================
-// TERIMA DATA DARI DEVICE LAIN
+// REALTIME SYNC SUPER STABIL
 // =============================
-roomDataRef.on("child_added", snapshot => {
+
+roomDataRef.on("value", snapshot => {
 
 const data = snapshot.val();
 
-if(!data) return;
+// RESET ARRAY
+scannedBarcodes = [];
+scannedData = [];
 
-if(!scannedBarcodes.includes(data.barcode)){
+// RESET TABEL
+document.getElementById("tabelData").innerHTML =
+`<tr>
+<th>No</th>
+<th>Kantong</th>
+<th>Berat (KG)</th>
+<th>Hapus</th>
+</tr>`;
 
-scannedBarcodes.push(data.barcode);
+// JIKA FIREBASE KOSONG
+if(!data){
+
+updateScanCounter();
+updateTotalBerat();
+
+localStorage.removeItem("r7_scannedBarcodes");
+localStorage.removeItem("r7_scannedData");
+
+console.log("DATA KOSONG");
+
+return;
+
+}
+
+// AMBIL SEMUA DATA FIREBASE
+Object.values(data).forEach((item,index)=>{
+
+scannedBarcodes.push(item.barcode);
 
 scannedData.push({
+barcode:item.barcode,
+berat:parseFloat(item.berat || 0)
+});
 
-barcode: data.barcode,
-berat: data.berat
+// TAMPILKAN KE TABEL
+tambahData(
+item.barcode,
+parseFloat(item.berat || 0)
+);
 
 });
 
-tambahData(data.barcode, data.berat);
-
+// UPDATE TOTAL
 updateScanCounter();
 updateTotalBerat();
+
+// SIMPAN LOCAL
 simpanLocal();
 
-showNotif("📡 Data Masuk dari Perangkat Lain","success");
-
-}
+console.log("SYNC DEVICE BERHASIL");
 
 });
-
-
-                                                                                                                                                                                  // =============================
-// JIKA DATA DIHAPUS DEVICE LAIN
-// =============================
-roomDataRef.on("child_removed", snapshot => {
-
-const data = snapshot.val();
-
-if(!data) return;
-
-const barcode = data.barcode;
-
-// Hapus dari array
-scannedBarcodes = scannedBarcodes.filter(b => b !== barcode);
-
-scannedData = scannedData.filter(d => d.barcode !== barcode);
-
-// Cari row berdasarkan isi kolom kedua
-const rows = document.querySelectorAll("#tabelData tr");
-
-for(let i=1; i<rows.length; i++){
-
-const cellBarcode = rows[i].cells[1];
-
-if(cellBarcode && cellBarcode.textContent.trim() === barcode){
-
-rows[i].remove();
-break;
-
-}
-
-}
-
-updateNomor();
-updateScanCounter();
-updateTotalBerat();
-simpanLocal();
-
-showNotif("📡 Data Dihapus dari Perangkat Lain","error");
-
-});
-
+                                                                                                                                                                            // =============================
 // =============================
 // SYNC FORM REALTIME
 // =============================
@@ -1727,37 +1558,7 @@ document.getElementById("confirmDeleteBox").style.display = "none";
 
 }
 
-function lanjutHapus(){
-
-if(!barcodeDelete) return;
-
-// 🔥 hapus dari Firebase
-roomDataRef.child(barcodeDelete).remove();
-
-// hapus dari tabel
-tombolDelete.parentNode.parentNode.remove();
-
-// hapus dari array
-scannedBarcodes = scannedBarcodes.filter(b=>b!==barcodeDelete);
-
-scannedData = scannedData.filter(d=>d.barcode!==barcodeDelete);
-
-simpanLocal();
-
-updateNomor();
-updateScanCounter();
-updateTotalBerat();
-
-document.getElementById("confirmDeleteBox").style.display = "none";
-
-showNotif("🗑️ Data berhasil dihapus","error");
-
-barcodeDelete = null;
-tombolDelete = null;
-
-}
-
-                                                                                                                                                                                        <!-- ================= KONFIRMASI HAPUS SEMUA ================= -->
+                                                                                                                                                                                     <!-- ================= KONFIRMASI HAPUS SEMUA ================= -->
 
 function bukaHapusSemua(){
 
@@ -1773,14 +1574,45 @@ document.getElementById("confirmHapusSemuaBox").style.display = "none";
 
 function lanjutHapusSemua(){
 
-document.getElementById("confirmHapusSemuaBox").style.display = "none";
+document.getElementById(
+"confirmHapusSemuaBox"
+).style.display = "none";
 
+// HAPUS FIREBASE
 roomDataRef.remove();
 roomFormRef.remove();
+roomBCRef.remove();
 
+// HAPUS LOCAL
+localStorage.removeItem("r7_scannedBarcodes");
+localStorage.removeItem("r7_scannedData");
+localStorage.removeItem("r7_formData");
+
+// RESET ARRAY
 scannedBarcodes = [];
 scannedData = [];
+dataBC = [];
+tempDataBC = [];
 
+// RESET FORM
+document.getElementById("petugas").value = "";
+document.getElementById("driver").value = "";
+document.getElementById("nopol").value = "";
+document.getElementById("angkutan").value = "";
+document.getElementById("mode").value = "";
+document.getElementById("nosurat").value = "";
+document.getElementById("tujuan").value = "";
+
+// RESET SIGNATURE
+if(typeof clearSignature === "function"){
+clearSignature();
+}
+
+// RESET INFO BC
+document.getElementById("infoBC").innerHTML =
+"❌ Belum ada DATA BC";
+
+// RESET TABEL
 document.getElementById("tabelData").innerHTML =
 `<tr>
 <th>No</th>
@@ -1792,7 +1624,10 @@ document.getElementById("tabelData").innerHTML =
 updateScanCounter();
 updateTotalBerat();
 
-localStorage.clear();
+showNotif(
+"✅ Semua data berhasil dihapus",
+"success"
+);
 
 }
 
