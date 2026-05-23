@@ -1335,7 +1335,8 @@ driver: document.getElementById("driver").value,
 nopol: document.getElementById("nopol").value,
 angkutan: document.getElementById("angkutan").value,
 mode: document.getElementById("mode").value,
-nosurat: document.getElementById("nosurat").value
+nosurat: document.getElementById("nosurat").value,
+tujuan: document.getElementById("tujuan").value
 
 };
 
@@ -1367,6 +1368,7 @@ document.getElementById("nopol").value = data.nopol || "";
 document.getElementById("angkutan").value = data.angkutan || "";
 document.getElementById("mode").value = data.mode || "";
 document.getElementById("nosurat").value = data.nosurat || "";
+document.getElementById("tujuan").value = data.tujuan || "";
 
 });
 
@@ -1555,6 +1557,49 @@ barcodeDelete = null;
 tombolDelete = null;
 
 document.getElementById("confirmDeleteBox").style.display = "none";
+
+}
+
+function lanjutHapus(){
+
+if(!barcodeDelete) return;
+
+// HAPUS DARI FIREBASE
+roomDataRef.child(barcodeDelete).remove();
+
+// HAPUS DARI ARRAY LOKAL
+scannedBarcodes =
+scannedBarcodes.filter(b => b !== barcodeDelete);
+
+scannedData =
+scannedData.filter(d => d.barcode !== barcodeDelete);
+
+// HAPUS TABEL
+if(tombolDelete){
+
+tombolDelete.parentElement.parentElement.remove();
+
+}
+
+// UPDATE
+updateNomor();
+updateScanCounter();
+updateTotalBerat();
+simpanLocal();
+
+// TUTUP MODAL
+document.getElementById(
+"confirmDeleteBox"
+).style.display = "none";
+
+// RESET
+barcodeDelete = null;
+tombolDelete = null;
+
+showNotif(
+"🗑️ Data berhasil dihapus",
+"success"
+);
 
 }
 
