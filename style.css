@@ -1,2250 +1,1320 @@
-// ===== TAMBAHAN UNTUK TAMPILKAN DATA TERAKHIR (SCAN & MANUAL) =====
-(function(){
-
-// Simpan fungsi asli
-const originalProses = prosesBarcode;
-
-// Override tanpa mengubah isi lama
-prosesBarcode = function(barcode){
-
-// Panggil fungsi lama dulu
-originalProses(barcode);
-
-// Jika berhasil masuk ke array, tampilkan sebagai data terakhir
-if(scannedBarcodes.includes(barcode)){
-document.getElementById("lastScan").innerHTML =
-"✅ Data Terakhir : <span style='color:#FF6A00'>" + barcode + "</span>";
+/* SEMBUNYIKAN DI LAYAR */
+.ttd-card{
+display: none;
 }
 
-};
-
-})();
-
-function updateScanCounter(){
-document.getElementById("scanCounter").innerText =
-"Sukses Scan Kantong Ke : " + scannedBarcodes.length;
-}
-
-function updateTotalBerat(){
-let total = scannedData.reduce((sum,item)=> sum + item.berat,0);
-
-document.getElementById("totalBerat").innerText =
-total.toLocaleString("id-ID",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-});
-}
-
-let scannedBarcodes=[];
-let scannedData=[]; // simpan barcode + berat
-let dataBC = [];
-
- // ===== AUTO SAVE LOCAL STORAGE =====
-function simpanLocal(){
-localStorage.setItem("r7_scannedBarcodes", JSON.stringify(scannedBarcodes));
-localStorage.setItem("r7_scannedData", JSON.stringify(scannedData));
-}
-
-function loadLocal(){
-
-let savedBarcodes = localStorage.getItem("r7_scannedBarcodes");
-let savedData = localStorage.getItem("r7_scannedData");
-
-if(savedBarcodes && savedData){
-
-scannedBarcodes = JSON.parse(savedBarcodes);
-scannedData = JSON.parse(savedData);
-
-// Render ulang tabel
-scannedData.forEach((item,index)=>{
-tambahData(item.barcode,item.berat);
-});
-
-updateScanCounter();
-updateTotalBerat();
+/* TAMPIL SAAT PRINT */
+@media print{
+.ttd-card{
+display: block !important;
 }
 }
 
-function updateTanggalJam(){
-let now = new Date();
-
-let options = {
-day: '2-digit',
-month: 'long',
-year: 'numeric'
-};
-
-let tanggal = now.toLocaleDateString("id-ID", options);
-let jam = now.toLocaleTimeString("id-ID");
-
-document.getElementById("tanggal").value = tanggal + " - " + jam;
+:root{
+--navy:#0F172A;
+--navy2:#1E293B;
+--orange:#FF6A00;
+--orange2:#ff7e29;
+--bg:#0b1220;
+--card:#111827;
+--glass:rgba(255,255,255,0.05);
 }
 
-setInterval(updateTanggalJam,1000);
-updateTanggalJam();
-
-function beep(url){
-new Audio(url).play();
-}
-
-function showNotif(text,type,duration=2000){
-
-let n = document.getElementById("notif");
-
-n.innerText = text;
-n.className = type;
-
-// reset timeout lama
-clearTimeout(n.hideTimeout);
-
-// simpan timeout baru
-n.hideTimeout = setTimeout(()=>{
-
-n.innerText = "";
-
-}, duration);
-
-}
-
-function prosesBarcode(barcode){
-
-barcode = String(barcode).trim().toUpperCase();
-
-// =============================
-// CEK DATA BC DULU
-// =============================
-
-// Bersihkan barcode hasil scan
-barcode = String(barcode)
-.trim()
-.replace(/\s+/g,'')
-.toUpperCase();
-
-const ditemukanBC = dataBC.find(item => {
-
-return String(item.barcode)
-.trim()
-.replace(/\s+/g,'')
-.toUpperCase() === barcode;
-
-});
-
-// Jika ditemukan
-if(ditemukanBC){
-
-console.log("KETEMU BC :", barcode);
-
-errorBCAnimation();
-
-showNotif(
-"⛔ SATU KANTONG DITOLAK OLEH BC\n" +
-(ditemukanBC.keterangan2 || ""),
-"error",
-5000
-);
-
-return;
-
-}
-
-// =============================
-// CEK DUPLIKAT SCAN
-// =============================
-if(scannedBarcodes.includes(barcode)){
-
-beep("https://actions.google.com/sounds/v1/alarms/winding_alarm_clock.ogg");
-
-showNotif("❌ Kantong sudah ada!","error");
-
-return;
-}
-
-let petugas=document.getElementById("petugas").value;
-let driver=document.getElementById("driver").value;
-let nopol=document.getElementById("nopol").value;
-let angkutan=document.getElementById("angkutan").value;
-let mode=document.getElementById("mode").value;
-let nosurat=document.getElementById("nosurat").value;
-
-if(!petugas||!driver||!nopol||!angkutan||!mode){
-
-alert("Oiii KIMBEK...Lengkapi Data Driver Dulu!");
-
-return;
-
-}
-
-// 🔊 BEEP BERHASIL
-beep("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-
-// INPUT BERAT
-bukaInputBerat(barcode);
-
-}
-
-function onScanSuccess(decodedText){
-
-prosesBarcode(decodedText);
-
-// Pause sebentar agar tidak double scan
-scanner.clear();
-
-setTimeout(()=>{
-
-scanner.render(onScanSuccess);
-
-// 🔦 Nyalakan ulang torch setelah render ulang
-setTimeout(()=>{
-aktifkanTorchUlang();
-},800);
-
-},1000);
-}
-
-let scanner = new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
-scanner.render(onScanSuccess);
-
-// ===== AUTO FLASH (TORCH) SAAT SCAN DI HP =====
-let currentCameraTrack = null;
-
-async function aktifkanTorchUlang(){
-
-try{
-
-const video = document.querySelector("#reader video");
-
-if(video && video.srcObject){
-
-const stream = video.srcObject;
-const track = stream.getVideoTracks()[0];
-
-currentCameraTrack = track;
-
-const capabilities = track.getCapabilities();
-
-if(capabilities.torch){
-
-await track.applyConstraints({
-advanced: [{ torch: true }]
-});
-
-console.log("Flash ON 🔦 (ulang)");
-}
-
-}
-
-}catch(err){
-
-console.log("Torch gagal diaktifkan ulang");
-
-}
-
-}
-
-// Ambil kamera setelah scanner aktif
-setTimeout(async () => {
-
-try {
-
-const video = document.querySelector("#reader video");
-
-if (video && video.srcObject) {
-
-const stream = video.srcObject;
-const track = stream.getVideoTracks()[0];
-
-currentCameraTrack = track;
-
-const capabilities = track.getCapabilities();
-
-if (capabilities.torch) {
-
-await track.applyConstraints({
-advanced: [{ torch: true }]
-});
-
-console.log("Flash ON 🔦");
-
-}
-
-}
-
-} catch (err) {
-
-console.log("Flash tidak didukung di perangkat ini");
-
-}
-
-}, 1500);
-
-function tambahManual(){
-
-let input=document.getElementById("manualBarcode");
-let barcode=input.value.trim();
-
-if(barcode===""){
-showNotif("❌ Data Kantong Kosong!","error");
-return;
-}
-
-prosesBarcode(barcode);
-
-input.value="";
-}
-
-document.getElementById("manualBarcode")
-.addEventListener("keypress",function(e){
-
-if(e.key==="Enter"){
-tambahManual();
-}
-
-});
-
-function tambahData(barcode,berat){
-
-let table=document.getElementById("tabelData");
-
-let row=table.insertRow();
-
-row.insertCell(0).innerHTML = table.rows.length - 1;
-row.insertCell(1).innerHTML = barcode;
-row.insertCell(2).innerHTML = berat.toFixed(2);
-
-row.insertCell(3).innerHTML =
-`<button class="btn-danger" onclick="hapusBaris(this,'${barcode}')">X</button>`;
-
-}
-
-function hapusBaris(btn,barcode){
-
-// 🔥 HAPUS DARI FIREBASE (INI YANG KURANG)
-roomDataRef.child(barcode).remove();
-
-
-
-// Hapus dari array lokal
-scannedBarcodes = scannedBarcodes.filter(b=>b!==barcode);
-scannedData = scannedData.filter(d=>d.barcode!==barcode);
-
-simpanLocal();
-
-updateNomor();
-updateScanCounter();
-updateTotalBerat();
-}
-
-function updateNomor(){
-
-let rows=document.querySelectorAll("#tabelData tr");
-
-for(let i=1;i<rows.length;i++){
-rows[i].cells[0].innerText=i;
-}
-
-}
-
-
-["petugas","driver","nopol","angkutan","mode","nosurat","tujuan"].forEach(id=>{
-
-document.getElementById(id).addEventListener("input", ()=>{
-
-simpanFormR7();
-kirimFormKeFirebase();
-
-});
-
-});
-
-function hapusSemuaAsli(){
-
-roomRef.remove(); // Hapus semua data di room Firebase
-
-scannedData = [];
-scannedBarcodes = [];
-
-document.getElementById("tabelData").innerHTML =
-`<tr>
-<th>No</th>
-<th>Kantong</th>
-<th>Berat (KG)</th>
-<th>Hapus</th>
-</tr>`;
-
-updateScanCounter();
-updateTotalBerat();
-
-}
-
-const canvas=document.getElementById("signature");
-const ctx=canvas.getContext("2d");
-
-let drawing=false;
-
-canvas.onmousedown=()=>drawing=true;
-canvas.onmouseup=()=>drawing=false;
-
-canvas.onmousemove=(e)=>{
-
-if(!drawing) return;
-
-ctx.lineWidth=2;
-ctx.lineCap="round";
-ctx.strokeStyle="black";
-
-ctx.lineTo(e.offsetX,e.offsetY);
-ctx.stroke();
-
-ctx.beginPath();
-ctx.moveTo(e.offsetX,e.offsetY);
-
-localStorage.removeItem("r7_scannedBarcodes");
-localStorage.removeItem("r7_scannedData");
-
-};
-
-function clearSignature(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
-}
-
-function generateNomorDokumen(){
-
-let d=new Date();
-
-return "STK-ESP-POSIND/"+d.getFullYear()+
-("0"+(d.getMonth()+1)).slice(-2)+
-("0"+d.getDate()).slice(-2)+
-"/"+Math.floor(Math.random()*1000);
-
-}
-
-                                                                                    /* PRINT PDF SUPER PADAT PREMIUM - FONT PALING BESAR TANPA TAMBAH HALAMAN */
-function printPDF(){
-
-if(scannedBarcodes.length===0){
-alert("Belum Ada Data Kantong KIMBEK !");
-return;
-}
-
-let tanggal=document.getElementById("tanggal").value;
-let petugas=document.getElementById("petugas").value;
-let driver=document.getElementById("driver").value;
-let nopol=document.getElementById("nopol").value;
-let angkutan=document.getElementById("angkutan").value;
-let mode=document.getElementById("mode").value;
-let nosurat=document.getElementById("nosurat").value;
-let tujuan=document.getElementById("tujuan").value;
-let nomor=generateNomorDokumen();
-let signatureImage=canvas.toDataURL("image/png");
-
-let qrData = `
-R7 ( BUKTI SERAH KIRIM ) POSIND ➜ ESP
-
-Nomor Dokumen : ${nomor}
-Tanggal       : ${tanggal}
-Nama Driver   : ${driver}
-No Polisi     : ${nopol}
-Angkutan      : ${angkutan}
-Mode          : ${mode}
-No Surat Permohonan Retur : ${nosurat}
-Total Kantong : ${scannedBarcodes.length}
-`;
-
-QRCode.toDataURL(qrData,function(err,url){
-
-let now = new Date();
-
-let fileTime =
-("0"+now.getDate()).slice(-2) +
-("0"+(now.getMonth()+1)).slice(-2) +
-now.getFullYear() + "_" +
-("0"+now.getHours()).slice(-2) +
-("0"+now.getMinutes()).slice(-2) +
-("0"+now.getSeconds()).slice(-2);
-
-let win=window.open("","","width=900,height=1200");
-
-win.document.write(`
-<html>
-<head>
-<title>SERAH_TERIMA_R7_${fileTime}</title>
-
-<style>
-
-@page{
-size:A4 portrait;
-margin:1mm 5mm;
+*{
+box-sizing:border-box;
+transition:all .3s ease;
 }
 
 body{
-font-family:Arial;
 margin:0;
-padding:0 5mm;
-box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#0b1220,#0F172A 40%,#111827);
+color:white;
 }
 
-.page{
-page-break-after:always;
-}
-
-.page:last-child{
-page-break-after:auto;
-}
-
-.judul{
+/* ================= HEADER ================= */
+.header{
+background:linear-gradient(135deg,var(--navy),#111827);
+padding:30px 15px 25px;
 text-align:center;
-font-size:16px;
-font-weight:bold;
-margin-top:5px;
-margin-bottom:5px;
+position:relative;
+box-shadow:0 10px 40px rgba(0,0,0,0.6);
+border-bottom:2px solid rgba(255,106,0,0.3);
 }
 
-.info{
-margin-top:4px;
-font-size:11px;
-line-height:1.3;
-}
-
-.flex-table{
+/* LOGO */
+.logo-wrapper{
 display:flex;
-gap:5px;
-margin-top:5px;
+justify-content:center;
+margin-bottom:15px;
 }
 
+.logo-circle{
+width:160px;
+height:160px;
+border-radius:50%;
+background:linear-gradient(145deg,#0f172a,#1e293b);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+box-shadow:
+0 0 30px rgba(255,106,0,0.8),
+0 0 60px rgba(255,106,0,0.4),
+inset 0 0 15px rgba(255,255,255,0.05);
+border:3px solid #FF6A00;
+}
+
+.logo-circle img{
+width:85%;
+height:85%;
+object-fit:contain;
+}
+
+.header-title{
+font-weight:700;
+font-size:18px;
+letter-spacing:1px;
+color:white;
+text-shadow:0 0 10px rgba(255,106,0,0.6);
+}
+
+/* ================= CONTAINER ================= */
+.container{
+padding:20px;
+max-width:900px;
+margin:auto;
+}
+
+/* ================= CARD ================= */
+.card{
+background:var(--card);
+padding:18px;
+border-radius:18px;
+margin-bottom:20px;
+box-shadow:
+0 8px 25px rgba(0,0,0,0.6),
+inset 0 0 20px rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.05);
+}
+
+/* ================= FORM ================= */
+label{
+font-weight:600;
+font-size:13px;
+color:#cbd5e1;
+}
+
+input{
+width:100%;
+padding:14px;
+margin-top:6px;
+margin-bottom:14px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,0.1);
+background:#0f172a;
+color:white;
+box-shadow:
+inset 0 0 10px rgba(0,0,0,0.6),
+0 0 8px rgba(255,106,0,0.2);
+}
+
+input:focus{
+outline:none;
+border:1px solid var(--orange);
+box-shadow:
+0 0 12px var(--orange),
+inset 0 0 10px rgba(0,0,0,0.7);
+transform:translateY(-2px);
+}
+
+/* ================= BUTTON ================= */
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+font-weight:600;
+cursor:pointer;
+margin-top:10px;
+letter-spacing:0.5px;
+}
+
+.btn-primary{
+background:linear-gradient(135deg,var(--navy),#1e293b);
+color:white;
+box-shadow:0 0 12px rgba(255,106,0,0.4);
+}
+
+.btn-orange{
+background:linear-gradient(135deg,var(--orange),var(--orange2));
+color:white;
+box-shadow:0 0 15px rgba(255,106,0,0.7);
+}
+
+.btn-success{
+background:linear-gradient(135deg,#16a34a,#22c55e);
+color:white;
+box-shadow:0 0 12px rgba(34,197,94,0.6);
+}
+
+.btn-danger{
+background:linear-gradient(135deg,#b91c1c,#ef4444);
+color:white;
+box-shadow:0 0 12px rgba(239,68,68,0.6);
+}
+
+.btn-excel{
+background:linear-gradient(135deg,#d97706,#f59e0b);
+color:white;
+box-shadow:0 0 12px rgba(245,158,11,0.6);
+}
+
+button:hover{
+transform:translateY(-3px);
+box-shadow:0 8px 20px rgba(255,106,0,0.6);
+}
+
+                    /* ================= TABLE ================= */
 table{
-width:50%;
+width:100%;
 border-collapse:collapse;
-font-size:11px;
+font-size:13px;
+border-radius:12px;
+overflow:hidden;
 }
 
 th{
-background:#000;
-color:#fff;
-font-size:11px;
+background:linear-gradient(135deg,var(--navy),#1e293b);
+color:white;
+padding:10px;
 }
 
-th, td{
-border:1px solid black;
-padding:2px;
+td{
+padding:8px;
+border-bottom:1px solid rgba(255,255,255,0.05);
 text-align:center;
+color:#e2e8f0;
 }
 
-.footer{
-margin-top:10px;
+tr:hover{
+background:rgba(255,106,0,0.08);
+}
+
+/* ================= COUNTER ================= */
+#scanCounter{
+font-size:16px;
+font-weight:700;
+color:var(--orange);
+text-shadow:0 0 10px var(--orange);
+}
+
+/* ================= NOTIF ================= */
+.success{
+color:#22c55e;
+font-weight:600;
+}
+
+.error{
+color:#ef4444;
+font-weight:600;
+}
+
+/* ================= SIGNATURE ================= */
+canvas{
+width:100%;
+max-width:300px;
+border-radius:12px;
+background:white;
+}
+
+/* ================= TOTAL BERAT SUPER KEREN ================= */
+.total-box{
+margin-top:15px;
+text-align:center;
+font-size:20px;
+font-weight:700;
+padding:15px;
+border-radius:16px;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+box-shadow:
+0 0 20px rgba(255,106,0,0.6),
+inset 0 0 20px rgba(255,255,255,0.05);
+border:2px solid rgba(255,106,0,0.4);
+color:#FF6A00;
+text-shadow:
+0 0 10px #FF6A00,
+0 0 20px rgba(255,106,0,0.7);
+letter-spacing:1px;
+}
+
+#totalBerat{
+font-size:24px;
+font-weight:900;
+color:#ffffff;
+text-shadow:
+0 0 10px #ffffff,
+0 0 20px #FF6A00,
+0 0 30px #FF6A00;
+}
+
+/* ================= FORM NEON TIMBUL ================= */
+input{
+width:100%;
+padding:14px;
+margin-top:6px;
+margin-bottom:14px;
+border-radius:16px;
+border:1px solid rgba(255,255,255,0.1);
+background:linear-gradient(145deg,#0f172a,#111827);
+color:white;
+font-weight:500;
+box-shadow:
+6px 6px 15px rgba(0,0,0,0.6),
+-4px -4px 12px rgba(255,255,255,0.03),
+inset 0 0 10px rgba(0,0,0,0.7);
+}
+
+input:focus{
+outline:none;
+border:1px solid #FF6A00;
+box-shadow:
+0 0 15px #FF6A00,
+0 0 30px rgba(255,106,0,0.6),
+inset 0 0 15px rgba(0,0,0,0.8);
+transform:translateY(-3px) scale(1.02);
+}
+
+/* ================= LABEL LEBIH MODERN ================= */
+label{
+font-weight:600;
+font-size:13px;
+color:#e2e8f0;
+letter-spacing:0.5px;
+text-transform:uppercase;
+text-shadow:
+0 0 5px rgba(255,255,255,0.2);
+}
+
+/* ================= LOGO PROPORSIONAL ================= */
+.logo-circle{
+width:110px;
+height:110px;
+border-radius:50%;
+background:linear-gradient(145deg,#0f172a,#1e293b);
+display:flex;
+align-items:center;
+justify-content:center;
+overflow:hidden;
+box-shadow:
+0 0 25px rgba(255,106,0,0.7),
+0 0 50px rgba(255,106,0,0.4),
+inset 0 0 15px rgba(255,255,255,0.05);
+border:2px solid #FF6A00;
+}
+
+.logo-circle img{
+width:75%;
+height:75%;
+object-fit:contain;
+}
+
+                    /* =========================
+SUKSES SCAN LEBIH BESAR
+========================= */
+#scanCounter{
+font-size:22px !important;
+font-weight:900 !important;
+letter-spacing:1px;
+text-align:center;
+padding:10px;
+border-radius:14px;
+background:linear-gradient(135deg,#0f172a,#1e293b);
+border:2px solid rgba(255,106,0,0.4);
+box-shadow:
+0 0 15px rgba(255,106,0,0.6),
+inset 0 0 15px rgba(255,255,255,0.05);
+color:#FF6A00;
+text-shadow:
+0 0 10px #FF6A00,
+0 0 20px rgba(255,106,0,0.7);
+animation:glowScan 2s infinite alternate;
+}
+
+@keyframes glowScan{
+from{
+box-shadow:
+0 0 10px rgba(255,106,0,0.4),
+inset 0 0 10px rgba(255,255,255,0.05);
+}
+to{
+box-shadow:
+0 0 25px rgba(255,106,0,0.9),
+0 0 40px rgba(255,106,0,0.5),
+inset 0 0 15px rgba(255,255,255,0.08);
+}
+}
+
+/* =========================
+NOTIF REQUEST & SUCCESS
+========================= */
+.success,
+.error{
+font-size:35px;
+font-weight:700;
+text-align:center;
+padding:8px;
+border-radius:12px;
+letter-spacing:0.5px;
+animation:notifGlow 1.5s ease-in-out infinite alternate;
+}
+
+.success{
+color:#22c55e;
+text-shadow:0 0 10px #22c55e;
+}
+
+.error{
+color:#ef4444;
+text-shadow:0 0 10px #ef4444;
+}
+
+@keyframes notifGlow{
+from{opacity:0.8;}
+to{opacity:1;}
+}
+
+/* =========================
+TOMBOL HIDUP / BERNAFAS
+========================= */
+button{
+position:relative;
+overflow:hidden;
+transition:all 0.3s ease;
+}
+
+button::after{
+content:"";
+position:absolute;
+top:0;
+left:-100%;
+width:100%;
+height:100%;
+background:linear-gradient(
+120deg,
+transparent,
+rgba(255,255,255,0.3),
+transparent
+);
+transition:all 0.6s;
+}
+
+button:hover::after{
+left:100%;
+}
+
+button:hover{
+transform:translateY(-4px) scale(1.03);
+}
+
+/* efek denyut pelan */
+button{
+animation:buttonPulse 3s infinite ease-in-out;
+}
+
+@keyframes buttonPulse{
+0%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+50%{box-shadow:0 0 20px rgba(255,106,0,0.8);}
+100%{box-shadow:0 0 10px rgba(255,106,0,0.4);}
+}
+
+/* 🔥 TOMBOL KELUAR CYBER NEON */
+#btnKeluar{
+position:absolute;
+top:18px;
+right:25px;
+padding:10px 20px;
+background:linear-gradient(135deg,#FF6A00,#FFD700);
+color:#fff;
+font-weight:900;
+font-size:14px;
+border-radius:12px;
+text-decoration:none;
+text-transform:uppercase;
+box-shadow:
+0 0 10px #FF6A00,
+0 0 20px #FFD700,
+0 0 30px rgba(255,215,0,0.6);
+z-index:999;
+overflow:hidden;
+transition:all 0.3s ease;
+}
+
+/* Neon Sweep Light Animation */
+#btnKeluar::after{
+content:'';
+position:absolute;
+top:0;
+left:-100%;
+width:50%;
+height:100%;
+background:linear-gradient(120deg,transparent,rgba(255,255,255,0.6),transparent);
+transform:skewX(-25deg);
+animation:sweep 2.5s infinite;
+}
+
+@keyframes sweep{
+0%{left:-100%;}
+100%{left:150%;}
+}
+
+/* Hover efek glowing */
+#btnKeluar:hover{
+box-shadow:
+0 0 15px #FF6A00,
+0 0 35px #FFD700,
+0 0 60px rgba(255,215,0,0.8);
+transform:translateY(-2px) scale(1.05);
+}
+
+#btnKeluar:active{
+transform:scale(0.97);
+}
+
+/* ================= BOX INPUT BERAT ================= */
+
+.berat-overlay{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.85);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+}
+
+.berat-modal{
+width:320px;
+background:linear-gradient(145deg,#0f172a,#111827);
+border-radius:18px;
+padding:25px;
+text-align:center;
+
+box-shadow:
+0 0 25px rgba(255,106,0,0.8),
+0 0 60px rgba(255,106,0,0.4),
+inset 0 0 20px rgba(255,255,255,0.05);
+
+border:2px solid #FF6A00;
+animation:popBerat 0.3s ease;
+}
+
+@keyframes popBerat{
+from{transform:scale(0.7);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+.berat-title{
+font-size:18px;
+font-weight:700;
+margin-bottom:10px;
+color:#FF6A00;
+text-shadow:0 0 10px #FF6A00;
+}
+
+.berat-barcode{
+font-size:14px;
+margin-bottom:15px;
+color:#e2e8f0;
+}
+
+#inputBeratKg{
+width:100%;
+padding:14px;
+font-size:18px;
+text-align:center;
+border-radius:12px;
+border:none;
+background:#020617;
+color:#fff;
+
+box-shadow:
+inset 0 0 10px rgba(0,0,0,0.7),
+0 0 10px rgba(255,106,0,0.4);
+}
+
+.berat-buttons{
+display:flex;
+gap:10px;
+margin-top:15px;
+}
+
+/* ================= MODAL BC ================= */
+
+.modal-bc{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:none;
+justify-content:center;
+align-items:center;
+z-index:99999;
+backdrop-filter:blur(4px);
+}
+
+.modal-content-bc{
+width:90%;
+max-width:500px;
+background:#111;
+border-radius:20px;
+overflow:hidden;
+box-shadow:0 0 30px rgba(255,106,0,0.4);
+animation:zoomBC 0.25s ease;
+border:2px solid #FF6A00;
+}
+
+@keyframes zoomBC{
+from{
+transform:scale(0.7);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.modal-header-bc{
+padding:18px;
+background:#FF6A00;
+color:#fff;
 display:flex;
 justify-content:space-between;
-align-items:flex-end;
+align-items:center;
 }
 
-.box-ttd{
-width:30%;
+.modal-header-bc h2{
+margin:0;
+font-size:22px;
+}
+
+.modal-header-bc p{
+margin:2px 0 0;
+font-size:12px;
+}
+
+.close-bc{
+background:linear-gradient(135deg,#ff0000,#ff4d4d);
+border:none;
+color:#fff;
+font-size:22px;
+font-weight:bold;
+cursor:pointer;
+width:42px;
+height:42px;
+border-radius:12px;
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+box-shadow:
+0 0 10px rgba(255,0,0,0.7),
+0 0 20px rgba(255,0,0,0.4);
+
+transition:all .25s ease;
+}
+
+/* HOVER */
+.close-bc:hover{
+transform:scale(1.08) rotate(90deg);
+
+box-shadow:
+0 0 18px rgba(255,0,0,1),
+0 0 35px rgba(255,0,0,0.7);
+
+background:linear-gradient(135deg,#ff1a1a,#ff6666);
+}
+
+/* KLIK */
+.close-bc:active{
+transform:scale(0.92);
+}
+
+.modal-body-bc{
+padding:20px;
+}
+
+.upload-area-bc{
+border:2px dashed #FF6A00;
+border-radius:15px;
+padding:30px;
 text-align:center;
-font-size:11px;
+background:#1a1a1a;
 }
 
-</style>
-
-</head>
-
-<body>
-`);
-
-let perColumn = 40;
-let perPage = 80;
-
-let totalPages = Math.ceil(scannedBarcodes.length / perPage);
-
-for(let p=0; p<totalPages; p++){
-
-let start = p * perPage;
-let end = start + perPage;
-
-let pageData = scannedBarcodes.slice(start, end);
-
-let leftData = pageData.slice(0, perColumn);
-let rightData = pageData.slice(perColumn, perPage);
-
-let leftTable = `
-<table>
-<tr>
-<th style="width:10%">No</th>
-<th style="width:40%">NO KANTONG</th>
-<th style="width:25%">PRODUK</th>
-<th style="width:25%">BERAT (KG)</th>
-</tr>
-`;
-
-leftData.forEach((barcode,index)=>{
-
-let data = scannedData.find(d => d.barcode === barcode);
-
-leftTable += `
-<tr>
-<td>${start + index + 1}</td>
-<td>${barcode}</td>
-<td>ECO</td>
-<td>${data ? data.berat.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}) : "0.00"}</td>
-</tr>
-`;
-
-});
-
-// Isi kosong sampai 40 baris
-for(let i=leftData.length;i<perColumn;i++){
-leftTable += `<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>`;
+.upload-icon{
+font-size:55px;
+margin-bottom:10px;
 }
 
-leftTable += `</table>`;
-
-let rightTable = `
-<table>
-<tr>
-<th style="width:10%">No</th>
-<th style="width:40%">NO KANTONG</th>
-<th style="width:25%">PRODUK</th>
-<th style="width:25%">BERAT (KG)</th>
-</tr>
-`;
-
-rightData.forEach((barcode,index)=>{
-
-let data = scannedData.find(d => d.barcode === barcode);
-
-rightTable += `
-<tr>
-<td>${start + perColumn + index + 1}</td>
-<td>${barcode}</td>
-<td>ECO</td>
-<td>${data ? data.berat.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}) : "0.00"}</td>
-</tr>
-`;
-
-});
-
-// Isi kosong sampai 40 baris
-for(let i=rightData.length;i<perColumn;i++){
-rightTable += `<tr><td>&nbsp;</td><td></td><td></td><td></td></tr>`;
+.upload-text{
+font-size:18px;
+font-weight:bold;
+color:#fff;
 }
 
-rightTable += `</table>`;
+.upload-sub{
+font-size:12px;
+color:#aaa;
+margin-top:5px;
+}
 
-win.document.write(`
-<div class="page">
+.btn-upload-bc{
+margin-top:20px;
+background:#FF6A00;
+border:none;
+padding:12px 25px;
+border-radius:10px;
+font-weight:bold;
+color:#fff;
+cursor:pointer;
+font-size:15px;
+}
 
-<!-- LOGO POJOK KIRI PALING UJUNG -->
-<img src="Logo PosIND.png"
-style="
+.info-bc{
+margin-top:15px;
+font-size:14px;
+text-align:center;
+color:#00ff90;
+font-weight:bold;
+}
+
+.modal-footer-bc{
+display:flex;
+gap:10px;
+padding:15px;
+background:#0d0d0d;
+}
+
+.btn-batal-bc,
+.btn-kirim-bc,
+.btn-hapus-bc{
+flex:1;
+padding:12px;
+border:none;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+font-size:14px;
+}
+
+.btn-batal-bc{
+background:#444;
+color:#fff;
+}
+
+.btn-kirim-bc{
+background:#FF6A00;
+color:#fff;
+}
+
+.btn-hapus-bc{
+background:#ff0000;
+color:#fff;
+}
+
+.btn-bc{
+background:#FF6A00;
+color:#fff;
+border:none;
+padding:12px 20px;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* ================= SHAKE ERROR ================= */
+
+/* ================= SHAKE ERROR SUPER KUAT ================= */
+
+/* ================= SHAKE ERROR SUPER GILA ================= */
+
+.shake-error{
+animation: shakeError .9s cubic-bezier(.36,.07,.19,.97);
+}
+
+@keyframes shakeError{
+
+0%{
+transform:translate(0,0) rotate(0deg) scale(1);
+filter:blur(0);
+}
+
+5%{
+transform:translate(-35px,5px) rotate(-2deg) scale(1.02);
+}
+
+10%{
+transform:translate(35px,-5px) rotate(2deg) scale(1.03);
+}
+
+15%{
+transform:translate(-30px,4px) rotate(-2deg) scale(1.04);
+}
+
+20%{
+transform:translate(30px,-4px) rotate(2deg) scale(1.05);
+}
+
+25%{
+transform:translate(-28px,3px) rotate(-2deg) scale(1.04);
+}
+
+30%{
+transform:translate(28px,-3px) rotate(2deg) scale(1.05);
+}
+
+35%{
+transform:translate(-24px,2px) rotate(-1.5deg) scale(1.04);
+}
+
+40%{
+transform:translate(24px,-2px) rotate(1.5deg) scale(1.05);
+}
+
+45%{
+transform:translate(-20px,2px) rotate(-1deg) scale(1.03);
+}
+
+50%{
+transform:translate(20px,-2px) rotate(1deg) scale(1.04);
+}
+
+55%{
+transform:translate(-16px,1px) rotate(-1deg) scale(1.03);
+}
+
+60%{
+transform:translate(16px,-1px) rotate(1deg) scale(1.02);
+}
+
+65%{
+transform:translate(-12px,1px) rotate(-0.8deg);
+}
+
+70%{
+transform:translate(12px,-1px) rotate(0.8deg);
+}
+
+75%{
+transform:translate(-8px,0px);
+}
+
+80%{
+transform:translate(8px,0px);
+}
+
+90%{
+transform:translate(-3px,0px);
+}
+
+100%{
+transform:translate(0,0) rotate(0deg) scale(1);
+filter:blur(0);
+}
+
+}
+
+/* ================= PASSWORD OVERLAY ================= */
+
+.password-overlay{
+
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+
+display:flex;
+justify-content:center;
+align-items:center;
+
+background:rgba(0,0,0,0.65);
+
+z-index:99999;
+
+backdrop-filter:blur(4px);
+
+animation:fadeIn .25s ease;
+
+}
+
+/* ================= MODAL PASSWORD ================= */
+
+.password-modal{
+
+width:90%;
+max-width:380px;
+
+background:#fff;
+
+border-radius:22px;
+
+padding:30px 25px;
+
+box-shadow:
+0 10px 40px rgba(0,0,0,0.35);
+
+text-align:center;
+
+animation:zoomIn .25s ease;
+
+}
+
+/* ICON */
+
+.password-icon{
+
+font-size:55px;
+margin-bottom:10px;
+
+}
+
+/* TITLE */
+
+.password-title{
+
+font-size:24px;
+font-weight:700;
+color:#111;
+
+margin-bottom:8px;
+
+}
+
+/* SUBTITLE */
+
+.password-sub{
+
+font-size:14px;
+color:#666;
+
+margin-bottom:20px;
+
+}
+
+/* INPUT */
+
+#passwordBCInput{
+
+width:100%;
+
+padding:14px;
+
+border-radius:12px;
+
+border:2px solid #ddd;
+
+font-size:16px;
+
+outline:none;
+
+transition:0.2s;
+
+box-sizing:border-box;
+
+}
+
+#passwordBCInput:focus{
+
+border-color:#FF6A00;
+
+box-shadow:0 0 10px rgba(255,106,0,0.3);
+
+}
+
+/* ERROR */
+
+.password-error{
+
+color:red;
+font-size:13px;
+
+margin-top:10px;
+min-height:18px;
+
+}
+
+/* BUTTON AREA */
+
+.password-buttons{
+
+display:flex;
+gap:10px;
+
+margin-top:20px;
+
+}
+
+/* BUTTON */
+
+.password-buttons button{
+
+flex:1;
+
+padding:13px;
+
+border:none;
+
+border-radius:12px;
+
+font-weight:700;
+
+cursor:pointer;
+
+transition:0.2s;
+
+}
+
+/* BATAL */
+
+.btn-batal-pass{
+
+background:#ddd;
+color:#333;
+
+}
+
+.btn-batal-pass:hover{
+
+background:#c5c5c5;
+
+}
+
+/* MASUK */
+
+.btn-login-pass{
+
+background:#FF6A00;
+color:white;
+
+}
+
+.btn-login-pass:hover{
+
+transform:scale(1.03);
+
+background:#e55f00;
+
+}
+
+/* ANIMATION */
+
+@keyframes fadeIn{
+
+from{
+opacity:0;
+}
+
+to{
+opacity:1;
+}
+
+}
+
+@keyframes zoomIn{
+
+from{
+transform:scale(0.8);
+opacity:0;
+}
+
+to{
+transform:scale(1);
+opacity:1;
+}
+
+}
+
+/* ================= LOGIN ================= */
+
+#loginOverlay{
+position:fixed;
+inset:0;
+z-index:999999;
+display:flex;
+justify-content:center;
+align-items:center;
+overflow:hidden;
+font-family:'Poppins',sans-serif;
+}
+
+/* Background */
+
+.login-bg{
 position:absolute;
-top:5mm;
-left:5mm;
-width:60px;
-height:auto;
-">
-
-<div class="judul">
-DAFTAR LAMPIRAN R7
-</div>
-
-<div class="judul">
-Dari KCU BATAM 29400 Tujuan ${tujuan}
-</div>
-
-${p===0 ? `
-
-<div class="info" style="font-size:12px;margin-top:5px;">
-
-<br><br><br>
-
-<div style="display:flex;">
-<div style="width:130px;"><strong>NAMA DRIVER</strong></div>
-<div style="width:15px;">:</div>
-<div>${driver}</div>
-</div>
-
-                                                                                                                                          <div style="display:flex;">
-<div style="width:130px;"><strong>NO POLISI</strong></div>
-<div style="width:15px;">:</div>
-<div>${nopol}</div>
-</div>
-
-<div style="display:flex;">
-<div style="width:130px;"><strong>ANGKUTAN</strong></div>
-<div style="width:15px;">:</div>
-<div>${angkutan}</div>
-</div>
-
-<div style="display:flex;">
-<div style="width:130px;"><strong>MODE</strong></div>
-<div style="width:15px;">:</div>
-<div>${mode}</div>
-</div>
-
-<div style="display:flex;">
-<div style="width:130px;"><strong>TANGGAL</strong></div>
-<div style="width:15px;">:</div>
-<div>${tanggal}</div>
-</div>
-
-<div style="display:flex;">
-<div style="width:130px;"><strong>NO.SP - RETUR</strong></div>
-<div style="width:15px;">:</div>
-<div>${nosurat}</div>
-</div>
-
-</div>
-` : ``}
-
-<div class="flex-table">
-${leftTable}
-${rightTable}
-</div>
-
-${p === totalPages-1 ? `
-<div style="margin-top:15px;width:100%;">
-<table style="width:100%;border-collapse:collapse;font-size:14px;">
-<tr>
-<th style="border:1px solid black;">TOTAL KANTONG</th>
-<th style="border:1px solid black;">PRODUK</th>
-<th style="border:1px solid black;">TOTAL BERAT (KG)</th>
-</tr>
-
-<tr>
-<td style="border:1px solid black;text-align:center;font-weight:900;color:#000;">
-${scannedBarcodes.length.toLocaleString("id-ID")}
-</td>
-
-<td style="border:1px solid black;text-align:center;font-weight:bold;">
-E-COMMERCE
-</td>
-
-<td style="border:1px solid black;text-align:center;font-weight:900;color:#000;">
-${scannedData
-.reduce((s,d)=>s+d.berat,0)
-.toLocaleString("id-ID",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-})}
-</td>
-</tr>
-</table>
-</div>
-
-<div class="footer">
-<div class="box-ttd">
-KANTOR ASAL<br>
-<img src="${signatureImage}" width="110"><br><br>
-${petugas}
-</div>
-
-<div class="box-ttd">
-ANGKUTAN<br><br><br><br><br>
-<br><br>
-</div>
-
-<div class="box-ttd">
-KANTOR TUJUAN<br><br><br><br><br>
-<br><br>
-</div>
-
-<div class="box-ttd">
-QR<br>
-<img src="${url}" width="95">
-</div>
-</div>
-` : ``}
-
-</div>
-`);
+inset:0;
+background:
+linear-gradient(
+135deg,
+#0f172a,
+#111827,
+#1e293b
+);
+overflow:hidden;
 }
 
-win.document.write(`</body></html>`);
-win.document.close();
-win.print();
+/* Glow effect */
 
-});
+.login-bg::before{
+content:'';
+position:absolute;
+width:450px;
+height:450px;
+background:#ff6a00;
+filter:blur(140px);
+top:-120px;
+left:-120px;
+opacity:.35;
+animation:glow1 8s infinite alternate;
 }
 
-function exportExcel(){
-
-if(scannedBarcodes.length===0){
-alert("Belum Ada Data Kantong KIMBEK !");
-return;
+.login-bg::after{
+content:'';
+position:absolute;
+width:400px;
+height:400px;
+background:#2563eb;
+filter:blur(130px);
+bottom:-120px;
+right:-120px;
+opacity:.35;
+animation:glow2 8s infinite alternate;
 }
 
-let tanggal=document.getElementById("tanggal").value;
-let petugas=document.getElementById("petugas").value;
-let driver=document.getElementById("driver").value;
-let nopol=document.getElementById("nopol").value;
-let angkutan=document.getElementById("angkutan").value;
-let mode=document.getElementById("mode").value;
-let nosurat=document.getElementById("nosurat").value;
-let tujuan=document.getElementById("tujuan").value;
-
-let wb = XLSX.utils.book_new();
-
-let ws = {};
-let merges = [];
-
-function cell(r,c,v="",bold=false,bg=false){
-
-ws[XLSX.utils.encode_cell({r:r-1,c:c-1})] = {
-v:v,
-t:"s",
-s:{
-font:{
-bold:bold,
-name:"Arial",
-sz:10
-},
-alignment:{
-horizontal:"center",
-vertical:"center",
-wrapText:true
-},
-fill:bg ? {
-fgColor:{rgb:"4F81BD"}
-} : undefined,
-font:bg ? {
-bold:true,
-color:{rgb:"FFFFFF"},
-name:"Arial",
-sz:10
-} : {
-bold:bold,
-name:"Arial",
-sz:10
-},
-border:{
-top:{style:"thin"},
-bottom:{style:"thin"},
-left:{style:"thin"},
-right:{style:"thin"}
+@keyframes glow1{
+100%{
+transform:translate(60px,40px);
 }
 }
-};
 
+@keyframes glow2{
+100%{
+transform:translate(-50px,-30px);
+}
 }
 
-let row = 1;
+/* Login Box */
 
-// ================= JUDUL =================
-
-cell(row,1,"DAFTAR LAMPIRAN R7",true);
-
-ws["A1"].s = {
-font:{
-bold:true,
-sz:16,
-name:"Arial"
-},
-alignment:{
-horizontal:"center",
-vertical:"center"
+.login-box{
+position:relative;
+width:360px;
+padding:35px;
+border-radius:30px;
+background:rgba(255,255,255,.08);
+backdrop-filter:blur(20px);
+border:1px solid rgba(255,255,255,.1);
+box-shadow:
+0 10px 40px rgba(0,0,0,.45);
+text-align:center;
+animation:showLogin .5s ease;
 }
-};
 
-merges.push({
-s:{r:0,c:0},
-e:{r:0,c:3}
-});
+@keyframes showLogin{
+from{
+opacity:0;
+transform:translateY(30px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
 
-row++;
+/* Logo */
 
-cell(
-row,
-1,
-"Dari KCU BATAM 29400 Tujuan " + tujuan,
-true
+.login-logo{
+width:100px;
+height:100px;
+margin:auto;
+margin-bottom:18px;
+border-radius:50%;
+background:white;
+display:flex;
+justify-content:center;
+align-items:center;
+box-shadow:
+0 0 30px rgba(255,106,0,.45);
+}
+
+.login-logo img{
+width:65px;
+}
+
+/* Title */
+
+.login-box h1{
+color:white;
+font-size:28px;
+font-weight:700;
+margin-bottom:5px;
+}
+
+.login-box p{
+font-size:15px;
+font-weight:600;
+letter-spacing:2px;
+text-transform:uppercase;
+
+background:linear-gradient(
+90deg,
+#ffffff,
+#ffcc70,
+#ffffff
 );
 
-ws["A2"].s = {
-font:{
-bold:true,
-sz:13,
-name:"Arial"
-},
-alignment:{
-horizontal:"center",
-vertical:"center"
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+
+margin-bottom:28px;
+
+text-shadow:
+0 0 10px rgba(255,255,255,.15);
 }
-};
 
-merges.push({
-s:{r:1,c:0},
-e:{r:1,c:3}
-});
+/* Input */
 
-row += 2;
-
-// ================= INFO =================
-
-const info = [
-["Nama Driver",driver],
-["No Polisi",nopol],
-["Angkutan",angkutan],
-["Mode",mode],
-["No Surat Permohonan Retur",nosurat],
-["Tanggal",tanggal]
-];
-
-info.forEach(i=>{
-
-cell(row,1,i[0],true);
-cell(row,2,":",true);
-cell(row,3,i[1],true);
-
-ws[XLSX.utils.encode_cell({r:row-1,c:0})].s = {
-font:{
-bold:true,
-name:"Arial",
-sz:12
-},
-alignment:{
-horizontal:"left",
-vertical:"center"
+.input-group{
+margin-bottom:16px;
+display:flex;
+justify-content:center;
 }
-};
 
-ws[XLSX.utils.encode_cell({r:row-1,c:1})].s = {
-font:{
-bold:true,
-name:"Arial",
-sz:12
-},
-alignment:{
-horizontal:"center",
-vertical:"center"
+.input-group input{
+width:100%;
+padding:15px;
+border:none;
+outline:none;
+border-radius:14px;
+background:rgba(255,255,255,.12);
+color:white;
+font-size:15px;
+text-align:center;
+transition:.25s;
 }
-};
 
-ws[XLSX.utils.encode_cell({r:row-1,c:2})].s = {
-font:{
-bold:true,
-name:"Arial",
-sz:12
-},
-alignment:{
-horizontal:"left",
-vertical:"center"
+.input-group input::placeholder{
+color:#cbd5e1;
+letter-spacing:1px;
 }
-};
 
-merges.push({
-s:{r:row-1,c:2},
-e:{r:row-1,c:3}
-});
+.input-group input:focus{
+background:rgba(255,255,255,.18);
+transform:scale(1.02);
+}
 
-row++;
+/* Button Login */
 
-});
+.btn-login-app{
+width:100%;
+padding:15px;
+border:none;
+border-radius:14px;
+background:
+linear-gradient(
+135deg,
+#ff6a00,
+#ff9500
+);
+color:white;
+font-size:15px;
+font-weight:700;
+cursor:pointer;
+margin-top:5px;
+transition:.25s;
+box-shadow:
+0 5px 20px rgba(255,106,0,.35);
+}
 
-row += 1;
+.btn-login-app:hover{
+transform:translateY(-2px);
+box-shadow:
+0 10px 25px rgba(255,106,0,.45);
+}
 
-// ================= HEADER TABEL =================
+/* Button Keluar */
 
-cell(row,1,"No",true,true);
-cell(row,2,"NO KANTONG",true,true);
-cell(row,3,"PRODUK",true,true);
-cell(row,4,"BERAT (KG)",true,true);
+.btn-keluar-login{
+display:block;
+margin-top:14px;
+padding:13px;
+border-radius:14px;
+text-decoration:none;
 
-row++;
-
-// ================= DATA =================
-
-for(let i=0; i<scannedBarcodes.length; i++){
-
-let barcode = scannedBarcodes[i];
-
-let data = scannedData.find(d=>d.barcode===barcode);
-
-cell(row,1,String(i+1));
-
-cell(row,2,barcode);
-
-cell(row,3,"ECO");
-
-cell(
-row,
-4,
-data
-? data.berat.toLocaleString("id-ID",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-})
-: "0.00"
+background:
+linear-gradient(
+135deg,
+#1e293b,
+#334155
 );
 
-row++;
+border:1px solid rgba(255,255,255,.08);
 
+color:#f8fafc;
+
+font-weight:700;
+letter-spacing:.5px;
+
+transition:.25s;
+
+box-shadow:
+0 5px 18px rgba(0,0,0,.25);
 }
 
-// ================= TOTAL =================
+.btn-keluar-login:hover{
 
-row += 2;
-
-cell(row,1,"TOTAL KANTONG",true,true);
-cell(row,2,
-scannedBarcodes.length.toLocaleString("id-ID"),
-true
+background:
+linear-gradient(
+135deg,
+#334155,
+#475569
 );
 
-row++;
+transform:translateY(-2px);
 
-cell(row,1,"PRODUK",true,true);
-cell(row,2,"E-COMMERCE",true);
-
-row++;
-
-cell(row,1,"TOTAL BERAT (KG)",true,true);
-cell(
-row,
-2,
-scannedData
-.reduce((s,d)=>s+d.berat,0)
-.toLocaleString("id-ID",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-}),
-true
-);
-
-row += 4;
-
-// ================= TTD =================
-
-cell(row,1,"KANTOR ASAL",true);
-cell(row,3,"QR",true);
-
-row += 5;
-
-cell(row,1,petugas);
-cell(row,3,"Lihat QR di PDF");
-
-// ================= LEBAR KOLOM =================
-
-ws["!cols"] = [
-
-{wch:8},
-{wch:35},
-{wch:15},
-{wch:18}
-
-];
-
-ws["!merges"] = merges;
-
-ws["!ref"] = "A1:D"+row;
-
-XLSX.utils.book_append_sheet(
-wb,
-ws,
-"DATA_R7"
-);
-
-// ================= SAVE FILE =================
-
-let now = new Date();
-
-let fileTime =
-("0"+now.getDate()).slice(-2) +
-("0"+(now.getMonth()+1)).slice(-2) +
-now.getFullYear() + "_" +
-("0"+now.getHours()).slice(-2) +
-("0"+now.getMinutes()).slice(-2) +
-("0"+now.getSeconds()).slice(-2);
-
-XLSX.writeFile(
-wb,
-"Serah_Terima_R7_" + fileTime + ".xlsx"
-);
+box-shadow:
+0 8px 20px rgba(0,0,0,.35);
 
 }
 
-// LOAD DATA SAAT PAGE DIBUKA
-window.onload = function(){
+/* Error */
 
-// load form saja
-loadFormR7();
-
-// data scan FULL dari firebase realtime
-// jadi tidak perlu loadLocal lagi
-
-};
-
-                                                                                                                                                                                  // =============================
-// AUTO SAVE FORM R7 (TIDAK HILANG SAAT RELOAD)
-// =============================
-
-// Simpan data form
-function simpanFormR7(){
-
-const formData = {
-
-tanggal: document.getElementById("tanggal").value,
-petugas: document.getElementById("petugas").value,
-driver: document.getElementById("driver").value,
-nopol: document.getElementById("nopol").value,
-angkutan: document.getElementById("angkutan").value,
-mode: document.getElementById("mode").value,
-nosurat: document.getElementById("nosurat").value,
-tujuan: document.getElementById("tujuan").value
-
-};
-
-localStorage.setItem("r7_formData", JSON.stringify(formData));
-
+#loginNotif{
+margin-top:15px;
+color:#ffb4b4;
+font-size:14px;
+font-weight:600;
 }
 
-// Load kembali data form
-function loadFormR7(){
+/* Mobile */
 
-const saved = localStorage.getItem("r7_formData");
+@media(max-width:480px){
 
-if(saved){
+.login-box{
+width:92%;
+padding:28px;
+border-radius:24px;
+}
 
-const data = JSON.parse(saved);
-
-document.getElementById("tanggal").value = data.tanggal || "";
-document.getElementById("petugas").value = data.petugas || "";
-document.getElementById("driver").value = data.driver || "";
-document.getElementById("nopol").value = data.nopol || "";
-document.getElementById("angkutan").value = data.angkutan || "";
-document.getElementById("mode").value = data.mode || "";
-document.getElementById("nosurat").value = data.nosurat || "";
-document.getElementById("tujuan").value = data.tujuan || "";
-
+.login-box h1{
+font-size:24px;
 }
 
 }
-
-// Event listener auto save saat diketik
-["petugas","driver","nopol","angkutan","mode","nosurat","tujuan"].forEach(id=>{
-
-document.getElementById(id).addEventListener("input", simpanFormR7);
-
-});
-
-// Simpan juga tanggal tiap update
-setInterval(simpanFormR7, 1000);
-
-// Load saat halaman dibuka
-window.addEventListener("load", function(){
-
-loadFormR7();
-
-});
-
-// =============================
-// OVERRIDE HAPUS SEMUA + RESET FORM
-// =============================
-
-(function(){
-
-const hapusAsli = hapusSemua;
-
-hapusSemua = function(){
-
-// Jalankan fungsi hapus asli
-hapusAsli();
-
-// Hapus data form dari localStorage
-localStorage.removeItem("r7_formData");
-
-// Reset semua field form
-document.getElementById("petugas").value = "";
-document.getElementById("driver").value = "";
-document.getElementById("nopol").value = "";
-document.getElementById("angkutan").value = "";
-document.getElementById("mode").value = "";
-
-// Update ulang tanggal otomatis
-updateTanggalJam();
-
-// Fokus kembali ke input petugas
-document.getElementById("petugas").focus();
-
-console.log("Semua data + form berhasil direset");
-
-};
-
-})();
-
-// ======================================
-// OVERRIDE HAPUS SEMUA + KONFIRMASI
-// ======================================
-
-(function(){
-
-const hapusAsli = hapusSemua;
-
-hapusSemua = function(){
-
-// Popup konfirmasi
-let yakin = confirm(
-"⚠️ YAKIN MAU HAPUS SEMUA DATA?\n\n" +
-"Semua data kantong, berat, dan form akan direset dari awal!"
-);
-
-if(!yakin){
-return;
-}
-
-// Jalankan fungsi hapus asli (hapus tabel & scan)
-hapusAsli();
-
-// Hapus data form dari localStorage
-localStorage.removeItem("r7_formData");
-
-// Reset field form
-document.getElementById("petugas").value = "";
-document.getElementById("driver").value = "";
-document.getElementById("nopol").value = "";
-document.getElementById("angkutan").value = "";
-document.getElementById("mode").value = "";
-
-// Reset tanda tangan juga
-if(typeof clearSignature === "function"){
-
-clearSignature();
-
-}
-
-// Update tanggal otomatis
-updateTanggalJam();
-
-// Fokus kembali
-document.getElementById("petugas").focus();
-
-alert("✅ Semua data berhasil dihapus dan direset.");
-
-};
-
-})();
-
-// =============================
-// REALTIME SYNC VERSI STABIL
-// =============================
-
-// FORMAT ROOM SELALU SAMA (YYYYMMDD)
-function getRoomId(){
-
-const today = new Date();
-
-return "R7_" +
-today.getFullYear() +
-("0"+(today.getMonth()+1)).slice(-2) +
-("0"+today.getDate()).slice(-2);
-
-}
-
-// ROOT ROOM
-const roomRoot = db.ref("R7_SYNC/" + getRoomId());
-
-const roomDataRef = roomRoot.child("DATA");
-const roomFormRef = roomRoot.child("FORM");
-
-// =============================
-// KIRIM DATA BARCODE
-// =============================
-function kirimKeFirebase(barcode, berat){
-
-roomDataRef.child(barcode).set({
-
-barcode: barcode,
-berat: berat,
-timestamp: Date.now()
-
-});
-
-}
-
-// =============================
-// REALTIME SYNC SUPER STABIL
-// =============================
-
-roomDataRef.on("value", snapshot => {
-
-const data = snapshot.val();
-
-// RESET ARRAY
-scannedBarcodes = [];
-scannedData = [];
-
-// RESET TABEL
-document.getElementById("tabelData").innerHTML =
-`<tr>
-<th>No</th>
-<th>Kantong</th>
-<th>Berat (KG)</th>
-<th>Hapus</th>
-</tr>`;
-
-// JIKA FIREBASE KOSONG
-if(!data){
-
-updateScanCounter();
-updateTotalBerat();
-
-localStorage.removeItem("r7_scannedBarcodes");
-localStorage.removeItem("r7_scannedData");
-
-console.log("DATA KOSONG");
-
-return;
-
-}
-
-// AMBIL SEMUA DATA FIREBASE
-Object.values(data).forEach((item,index)=>{
-
-scannedBarcodes.push(item.barcode);
-
-scannedData.push({
-barcode:item.barcode,
-berat:parseFloat(item.berat || 0)
-});
-
-// TAMPILKAN KE TABEL
-tambahData(
-item.barcode,
-parseFloat(item.berat || 0)
-);
-
-});
-
-// UPDATE TOTAL
-updateScanCounter();
-updateTotalBerat();
-
-// SIMPAN LOCAL
-simpanLocal();
-
-console.log("SYNC DEVICE BERHASIL");
-
-});
-                                                                                                                                                                            // =============================
-// =============================
-// SYNC FORM REALTIME
-// =============================
-function kirimFormKeFirebase(){
-
-const formData = {
-
-petugas: document.getElementById("petugas").value,
-driver: document.getElementById("driver").value,
-nopol: document.getElementById("nopol").value,
-angkutan: document.getElementById("angkutan").value,
-mode: document.getElementById("mode").value,
-nosurat: document.getElementById("nosurat").value,
-tujuan: document.getElementById("tujuan").value
-
-};
-
-roomFormRef.set(formData);
-
-}
-
-// AUTO KIRIM SAAT DIKETIK
-["petugas","driver","nopol","angkutan","mode","nosurat","tujuan"].forEach(id=>{
-
-document.getElementById(id).addEventListener("input", ()=>{
-
-kirimFormKeFirebase();
-
-// khusus tujuan langsung sync realtime
-if(id === "tujuan"){
-
-roomFormRef.child("tujuan").set(
-document.getElementById("tujuan").value
-);
-
-}
-
-});
-
-});
-
-// REALTIME KHUSUS TUJUAN
-document.getElementById("tujuan")
-.addEventListener("change", function(){
-
-roomFormRef.child("tujuan").set(this.value);
-
-});
-
-// TERIMA UPDATE FORM DARI DEVICE LAIN
-roomFormRef.on("value", snapshot => {
-
-const data = snapshot.val();
-
-if(!data) return;
-
-// update hanya jika beda
-if(document.getElementById("petugas").value !== (data.petugas || "")){
-document.getElementById("petugas").value = data.petugas || "";
-}
-
-if(document.getElementById("driver").value !== (data.driver || "")){
-document.getElementById("driver").value = data.driver || "";
-}
-
-if(document.getElementById("nopol").value !== (data.nopol || "")){
-document.getElementById("nopol").value = data.nopol || "";
-}
-
-if(document.getElementById("angkutan").value !== (data.angkutan || "")){
-document.getElementById("angkutan").value = data.angkutan || "";
-}
-
-if(document.getElementById("mode").value !== (data.mode || "")){
-document.getElementById("mode").value = data.mode || "";
-}
-
-if(document.getElementById("nosurat").value !== (data.nosurat || "")){
-document.getElementById("nosurat").value = data.nosurat || "";
-}
-
-if(document.getElementById("tujuan").value !== (data.tujuan || "")){
-document.getElementById("tujuan").value = data.tujuan || "";
-}
-
-});
-
-// =============================
-// HAPUS SEMUA (VERSI STABIL)
-// =============================
-function hapusSemua(){
-
-let yakin = confirm(
-"⚠️ YAKIN MAU HAPUS SEMUA DATA?\n\n" +
-"Semua data kantong dan form akan direset!"
-);
-
-if(!yakin) return;
-
-// Hapus dari Firebase
-roomDataRef.remove();
-roomFormRef.remove();
-
-// Reset lokal
-scannedBarcodes = [];
-scannedData = [];
-
-document.getElementById("tabelData").innerHTML =
-`<tr>
-<th>No</th>
-<th>Kantong</th>
-<th>Berat (KG)</th>
-<th>Hapus</th>
-</tr>`;
-
-updateScanCounter();
-updateTotalBerat();
-
-localStorage.removeItem("r7_scannedBarcodes");
-localStorage.removeItem("r7_scannedData");
-localStorage.removeItem("r7_formData");
-
-document.getElementById("petugas").value = "";
-document.getElementById("driver").value = "";
-document.getElementById("nopol").value = "";
-document.getElementById("angkutan").value = "";
-document.getElementById("mode").value = "";
-
-if(typeof clearSignature === "function"){
-
-clearSignature();
-
-}
-
-alert("✅ Semua data berhasil direset.");
-
-}
-
-// ================= INPUT BERAT MODAL =================
-
-let barcodePending = null;
-
-function bukaInputBerat(barcode){
-
-barcodePending = barcode;
-
-document.getElementById("barcodeBerat").innerHTML =
-"Kantong : <b style='color:#FF6A00'>" + barcode + "</b>";
-
-document.getElementById("boxBerat").style.display = "flex";
-
-// reset input dan fokus
-const input = document.getElementById("inputBeratKg");
-
-input.value = "";
-
-setTimeout(()=>{
-
-input.focus();
-
-},200);
-
-}
-
-function batalBerat(){
-
-barcodePending = null;
-
-document.getElementById("boxBerat").style.display = "none";
-
-}
-
-function simpanBerat(){
-
-let input = document.getElementById("inputBeratKg");
-
-let berat = input.value;
-
-if(!barcodePending){
-
-showNotif("❌ Barcode tidak ditemukan!","error");
-return;
-
-}
-
-if(berat === "" || isNaN(berat)){
-
-showNotif("❌ Berat tidak valid!","error");
-return;
-
-}
-
-berat = parseFloat(berat);
-
-document.getElementById("boxBerat").style.display = "none";
-
-lanjutProsesBarcode(barcodePending, berat);
-
-barcodePending = null;
-
-}
-
-function lanjutProsesBarcode(barcode, berat){
-
-// Simpan data
-scannedBarcodes.push(barcode);
-
-scannedData.push({
-barcode:barcode,
-berat:berat
-});
-
-simpanLocal();
-
-// Tambah ke tabel
-tambahData(barcode,berat);
-
-// 🔥 KIRIM KE FIREBASE DI SINI
-kirimKeFirebase(barcode, berat);
-
-// Update counter
-updateScanCounter();
-updateTotalBerat();
-
-// Reset input
-let input = document.getElementById("manualBarcode");
-
-input.value = "";
-input.focus();
-
-showNotif("✅ Berhasil ditambahkan","success");
-
-}
-
-// ENTER otomatis simpan berat (lebih stabil)
-document.addEventListener("keydown", function(e){
-
-// cek apakah box input berat sedang terbuka
-let box = document.getElementById("boxBerat");
-
-if(box.style.display === "flex" && e.key === "Enter"){
-
-e.preventDefault();
-simpanBerat();
-
-}
-
-});
-
-// ================= KONFIRMASI HAPUS BARIS =================
-
-let barcodeDelete = null;
-let tombolDelete = null;
-
-function hapusBaris(btn,barcode){
-
-barcodeDelete = barcode;
-tombolDelete = btn;
-
-document.getElementById("confirmText").innerHTML =
-"Yakin ingin menghapus kantong:<br><b style='color:#FF6A00'>" + barcode + "</b>?";
-
-document.getElementById("confirmDeleteBox").style.display = "flex";
-
-}
-
-function batalHapus(){
-
-barcodeDelete = null;
-tombolDelete = null;
-
-document.getElementById("confirmDeleteBox").style.display = "none";
-
-}
-
-function lanjutHapus(){
-
-if(!barcodeDelete) return;
-
-// HAPUS DARI FIREBASE
-roomDataRef.child(barcodeDelete).remove();
-
-// HAPUS DARI ARRAY LOKAL
-scannedBarcodes =
-scannedBarcodes.filter(b => b !== barcodeDelete);
-
-scannedData =
-scannedData.filter(d => d.barcode !== barcodeDelete);
-
-// HAPUS TABEL
-if(tombolDelete){
-
-tombolDelete.parentElement.parentElement.remove();
-
-}
-
-// UPDATE
-updateNomor();
-updateScanCounter();
-updateTotalBerat();
-simpanLocal();
-
-// TUTUP MODAL
-document.getElementById(
-"confirmDeleteBox"
-).style.display = "none";
-
-// RESET
-barcodeDelete = null;
-tombolDelete = null;
-
-showNotif(
-"🗑️ Data berhasil dihapus",
-"success"
-);
-
-}
-
-                                                                                                                                                                                     <!-- ================= KONFIRMASI HAPUS SEMUA ================= -->
-
-function bukaHapusSemua(){
-
-document.getElementById("confirmHapusSemuaBox").style.display = "flex";
-
-}
-
-function batalHapusSemua(){
-
-document.getElementById("confirmHapusSemuaBox").style.display = "none";
-
-}
-
-function lanjutHapusSemua(){
-
-document.getElementById(
-"confirmHapusSemuaBox"
-).style.display = "none";
-
-// HAPUS FIREBASE
-roomDataRef.remove();
-roomFormRef.remove();
-roomBCRef.remove();
-
-// HAPUS LOCAL
-localStorage.removeItem("r7_scannedBarcodes");
-localStorage.removeItem("r7_scannedData");
-localStorage.removeItem("r7_formData");
-
-// RESET ARRAY
-scannedBarcodes = [];
-scannedData = [];
-dataBC = [];
-tempDataBC = [];
-
-// RESET FORM
-document.getElementById("petugas").value = "";
-document.getElementById("driver").value = "";
-document.getElementById("nopol").value = "";
-document.getElementById("angkutan").value = "";
-document.getElementById("mode").value = "";
-document.getElementById("nosurat").value = "";
-document.getElementById("tujuan").value = "";
-
-// RESET SIGNATURE
-if(typeof clearSignature === "function"){
-clearSignature();
-}
-
-// RESET INFO BC
-document.getElementById("infoBC").innerHTML =
-"❌ Belum ada DATA BC";
-
-// RESET TABEL
-document.getElementById("tabelData").innerHTML =
-`<tr>
-<th>No</th>
-<th>Kantong</th>
-<th>Berat (KG)</th>
-<th>Hapus</th>
-</tr>`;
-
-updateScanCounter();
-updateTotalBerat();
-
-showNotif(
-"✅ Semua data berhasil dihapus",
-"success"
-);
-
-}
-
-/* ===== ANTI INSPECT ===== */
-
-document.addEventListener("contextmenu", function(e){
-
-e.preventDefault();
-
-});
-
-document.onkeydown = function(e){
-
-// F12
-if(e.keyCode == 123){
-return false;
-}
-
-// CTRL + SHIFT + I
-if(e.ctrlKey && e.shiftKey && e.keyCode == 73){
-return false;
-}
-
-// CTRL + SHIFT + J
-if(e.ctrlKey && e.shiftKey && e.keyCode == 74){
-return false;
-}
-
-// CTRL + U
-if(e.ctrlKey && e.keyCode == 85){
-return false;
-}
-
-// CTRL + SHIFT + C
-if(e.ctrlKey && e.shiftKey && e.keyCode == 67){
-return false;
-}
-
-};
-
-document.onselectstart = function(){
-
-return false;
-
-};
-
-document.oncopy = function(){
-
-return false;
-
-};
-
-(function(){
-
-function detectDevTools(){
-
-const start = new Date();
-
-debugger;
-
-const end = new Date();
-
-if(end - start > 100){
-
-document.body.innerHTML =
-"<h1 style='color:red;text-align:center;margin-top:100px;'>SECURITY BLOCKED</h1>";
-
-}
-
-}
-
-setInterval(detectDevTools,1000);
-
-})();
-
-// =============================
-// IMPORT FILE BC
-// =============================
-
-document.getElementById("fileBC")
-.addEventListener("change", function(e){
-
-const file = e.target.files[0];
-
-if(!file){
-
-showNotif("❌ File tidak ditemukan","error");
-return;
-
-}
-
-document.getElementById("infoBC").innerHTML =
-"⏳ Membaca file Excel...";
-
-const reader = new FileReader();
-
-reader.onload = function(evt){
-
-try{
-
-const data = new Uint8Array(evt.target.result);
-
-const workbook = XLSX.read(data,{type:'array'});
-
-const sheetName = workbook.SheetNames[0];
-
-const worksheet = workbook.Sheets[sheetName];
-
-const json = XLSX.utils.sheet_to_json(worksheet,{header:1});
-
-tempDataBC = [];
-
-// ambil kolom pertama
-json.forEach((row,index)=>{
-
-if(index===0) return;
-
-if(row[0]){
-
-tempDataBC.push({
-barcode: String(row[0])
-.trim()
-.replace(/\s+/g,'')
-.toUpperCase(),
-
-keterangan2: row[2]
-? String(row[2]).trim()
-: ""
-});
-
-}
-
-});
-
-document.getElementById("infoBC").innerHTML =
-"✅ File berhasil dibaca : <b>" +
-tempDataBC.length +
-"</b> data BC";
-
-showNotif(
-"✅ IMPORT BC BERHASIL : " +
-tempDataBC.length + " DATA",
-"success"
-);
-
-beep("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
-
-console.log("DATA BC :", tempDataBC);
-
-}catch(err){
-
-console.error(err);
-
-document.getElementById("infoBC").innerHTML =
-"❌ Gagal membaca file";
-
-showNotif("❌ FORMAT FILE SALAH","error");
-
-errorBCAnimation();
-
-}
-
-};
-
-reader.readAsArrayBuffer(file);
-
-});
-
-// =============================
-// MODAL BC
-// =============================
-
-function bukaModalBC(){
-
-document.getElementById("modalBC").style.display = "flex";
-
-}
-
-function tutupModalBC(){
-
-document.getElementById("modalBC").style.display = "none";
-
-}
-
-// =============================
-// DATA BC FIREBASE
-// =============================
-
-const roomBCRef = roomRoot.child("DATA_BC");
-
-// =============================
-// IMPORT FILE BC
-// =============================
-
-let tempDataBC = [];
-
-document.getElementById("fileBC")
-.addEventListener("change", function(e){
-
-const file = e.target.files[0];
-
-if(!file) return;
-
-const reader = new FileReader();
-
-reader.onload = function(evt){
-
-const data = new Uint8Array(evt.target.result);
-
-const workbook = XLSX.read(data,{type:'array'});
-
-const sheetName = workbook.SheetNames[0];
-
-const worksheet = workbook.Sheets[sheetName];
-
-const json = XLSX.utils.sheet_to_json(worksheet,{header:1});
-
-tempDataBC = [];
-
-// ambil kolom pertama
-json.forEach((row,index)=>{
-
-if(index===0) return;
-
-if(row[0]){
-
-tempDataBC.push({
-barcode: String(row[0])
-.trim()
-.replace(/\s+/g,'')
-.toUpperCase(),
-
-keterangan2: row[2]
-? String(row[2]).trim()
-: ""
-});
-
-}
-
-});
-
-document.getElementById("infoBC").innerHTML =
-"✅ File berhasil dibaca : <b>" +
-tempDataBC.length +
-"</b> data";
-
-console.log("DATA BC :", tempDataBC);
-
-};
-
-reader.readAsArrayBuffer(file);
-
-});
-
-// =============================
-// KIRIM DATA BC
-// =============================
-
-function kirimDataBC(){
-
-if(tempDataBC.length===0){
-
-showNotif("❌ File BC belum dipilih","error");
-return;
-
-}
-
-dataBC = [...tempDataBC];
-
-// simpan ke firebase
-roomBCRef.set(dataBC);
-
-showNotif(
-"✅ Data BC berhasil dikirim : " +
-dataBC.length + " data",
-"success"
-);
-
-tutupModalBC();
-
-}
-
-// =============================
-// TERIMA DATA BC REALTIME
-// =============================
-
-roomBCRef.on("value", snapshot => {
-
-const data = snapshot.val();
-
-if(data){
-
-dataBC = data;
-
-console.log("SYNC DATA BC :", dataBC);
-
-}
-
-});
-
-// =============================
-// HAPUS DATA BC
-// =============================
-
-function hapusDataBC(){
-
-let yakin = confirm(
-"Yakin ingin menghapus semua DATA BC ?"
-);
-
-if(!yakin) return;
-
-dataBC = [];
-tempDataBC = [];
-
-roomBCRef.remove();
-
-document.getElementById("infoBC").innerHTML =
-"❌ Data BC sudah dihapus";
-
-showNotif("🗑️ DATA BC DIHAPUS","error");
-
-}
-
-// =============================
-// SOUND ERROR + SHAKE
-// =============================
-
-// =============================
-// SOUND ERROR + SHAKE
-// =============================
-
-function errorBCAnimation(){
-
-// 🔊 SIRENE KERAS
-const siren = new Audio(
-"https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg"
-);
-
-siren.volume = 1;
-
-siren.currentTime = 0;
-
-siren.play()
-.then(()=>{
-
-console.log("Sirene berhasil");
-
-})
-.catch(err=>{
-
-console.log("Audio gagal:", err);
-
-});
-
-// 🔥 GOYANG BODY KUAT
-document.body.classList.remove("shake-error");
-void document.body.offsetWidth;
-document.body.classList.add("shake-error");
-
-// 🚨 NOTIF
-showNotif(
-"⛔ SATU KANTONG DITOLAK OLEH BC ⛔",
-"error",
-5000
-);
-
-// ⏱ STOP EFEK
-setTimeout(()=>{
-
-document.body.classList.remove("shake-error");
-
-},5000);
-
-}
-
-// ================= PASSWORD IMPORT BC =================
-
-const PASSWORD_BC = "Di2tboit";
-
-// buka modal password
-function bukaPasswordBC(){
-
-document.getElementById("passwordBCBox").style.display = "flex";
-
-setTimeout(()=>{
-
-document.getElementById("passwordBCInput").focus();
-
-},200);
-
-}
-
-// tutup modal password
-function tutupPasswordBC(){
-
-document.getElementById("passwordBCBox").style.display = "none";
-
-document.getElementById("passwordBCInput").value = "";
-
-document.getElementById("passwordError").innerHTML = "";
-
-}
-
-// cek password
-function cekPasswordBC(){
-
-const input =
-document.getElementById("passwordBCInput").value;
-
-if(input === PASSWORD_BC){
-
-// tutup password
-tutupPasswordBC();
-
-// buka modal import bc
-bukaModalBC();
-
-beep("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-
-}else{
-
-document.getElementById("passwordError").innerHTML =
-"❌ PASSWORD SALAH";
-
-// layar goyang TANPA suara
-document.body.classList.remove("shake-error");
-void document.body.offsetWidth;
-document.body.classList.add("shake-error");
-
-setTimeout(()=>{
-
-document.body.classList.remove("shake-error");
-
-},500);
-
-}
-
-}
-
-// enter otomatis login
-document.addEventListener("keydown", function(e){
-
-if(
-document.getElementById("passwordBCBox").style.display === "flex"
-&& e.key === "Enter"
-){
-
-e.preventDefault();
-
-cekPasswordBC();
-
-}
-
-});
-
-// ================= LOGIN APP =================
-
-const APP_USER = "Win29400";
-const APP_PASS = "29400";
-
-// CEK LOGIN TERSIMPAN
-window.addEventListener("load", ()=>{
-
-const isLogin = localStorage.getItem("login_r7");
-
-if(isLogin === "true"){
-
-document.getElementById("loginOverlay").style.display = "none";
-
-}else{
-
-document.body.style.overflow = "hidden";
-
-}
-
-});
-
-// FUNGSI LOGIN
-function loginApp(){
-
-const user = document.getElementById("username").value.trim();
-const pass = document.getElementById("password").value.trim();
-
-const notif = document.getElementById("loginNotif");
-
-if(user === APP_USER && pass === APP_PASS){
-
-localStorage.setItem("login_r7","true");
-
-document.getElementById("loginOverlay").style.opacity = "0";
-
-setTimeout(()=>{
-
-document.getElementById("loginOverlay").style.display = "none";
-
-document.body.style.overflow = "auto";
-
-},400);
-
-}else{
-
-notif.innerHTML = "Username / Password Salah";
-
-navigator.vibrate?.(200);
-
-}
-
-}
-
-// ENTER LOGIN
-document.addEventListener("keydown",(e)=>{
-
-if(e.key === "Enter"){
-
-const overlay =
-document.getElementById("loginOverlay");
-
-if(
-overlay &&
-overlay.style.display !== "none"
-){
-loginApp();
-}
-
-}
-
-});
-
-// LOGOUT
-document
-.getElementById("btnKeluar")
-.addEventListener("click",()=>{
-
-localStorage.removeItem("login_r7");
-
-});
