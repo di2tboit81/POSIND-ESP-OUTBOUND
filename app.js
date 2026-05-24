@@ -2166,3 +2166,85 @@ cekPasswordBC();
 }
 
 });
+
+// ================= LOGIN APP =================
+
+const APP_USER = "Win29400";
+const APP_PASS = "29400";
+
+// CEK LOGIN TERSIMPAN
+window.addEventListener("load", ()=>{
+
+const isLogin = localStorage.getItem("login_r7");
+
+if(isLogin === "true"){
+
+document.getElementById("loginOverlay").style.display = "none";
+
+}else{
+
+document.body.style.overflow = "hidden";
+
+}
+
+});
+
+// FUNGSI LOGIN
+function loginApp(){
+
+const user = document.getElementById("username").value.trim();
+const pass = document.getElementById("password").value.trim();
+
+const notif = document.getElementById("loginNotif");
+
+if(user === APP_USER && pass === APP_PASS){
+
+localStorage.setItem("login_r7","true");
+
+document.getElementById("loginOverlay").style.opacity = "0";
+
+setTimeout(()=>{
+
+document.getElementById("loginOverlay").style.display = "none";
+
+document.body.style.overflow = "auto";
+
+},400);
+
+}else{
+
+notif.innerHTML = "Username / Password Salah";
+
+navigator.vibrate?.(200);
+
+}
+
+}
+
+// ENTER LOGIN
+document.addEventListener("keydown",(e)=>{
+
+if(e.key === "Enter"){
+
+const overlay =
+document.getElementById("loginOverlay");
+
+if(
+overlay &&
+overlay.style.display !== "none"
+){
+loginApp();
+}
+
+}
+
+});
+
+// LOGOUT
+document
+.getElementById("btnKeluar")
+.addEventListener("click",()=>{
+
+localStorage.removeItem("login_r7");
+
+});
