@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Secure Access</title>
+</head>
+<body style="background:#0f172a;color:white;font-family:Arial;text-align:center;padding-top:100px;">
+
+<h2>MEMERIKSA AKSES...</h2>
+
+<script>
+// TOKEN YANG VALID
+const validTokens = [
+  "A8xK92LmP",
+  "X7sLpQ21",
+  "ESP29400"
+];
+
+// AMBIL TOKEN DARI URL
+const params = new URLSearchParams(window.location.search);
+const token = params.get("token");
+
+// CEK TOKEN
+if(validTokens.includes(token)){
+
+    // HAPUS TOKEN SETELAH DIPAKAI
+    localStorage.setItem(token, "used");
+
+    // CEK SUDAH DIPAKAI ATAU BELUM
+    if(localStorage.getItem(token) === "used-again"){
+        document.body.innerHTML = "<h1>LINK SUDAH DIGUNAKAN</h1>";
+    } else {
+
+        localStorage.setItem(token, "used-again");
+
+        // MASUK KE WEBSITE
+        window.location.href = "index.html";
+    }
+
+}else{
+    document.body.innerHTML = "<h1>AKSES DITOLAK</h1>";
+}
+</script>
+
+</body>
+</html>
