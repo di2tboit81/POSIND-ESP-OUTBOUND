@@ -1318,3 +1318,15 @@ font-size:24px;
 }
 
 }
+
+#manualBarcode,
+#inputBeratKg{
+
+-webkit-user-select:text !important;
+user-select:text !important;
+
+-webkit-touch-callout:default !important;
+
+pointer-events:auto !important;
+
+}
