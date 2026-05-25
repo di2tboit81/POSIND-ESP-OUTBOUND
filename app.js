@@ -1718,6 +1718,16 @@ showNotif(
 
 document.addEventListener("contextmenu", function(e){
 
+const aktif = document.activeElement;
+
+// izinkan menu paste di input manual
+if(
+aktif &&
+aktif.id === "manualBarcode"
+){
+return true;
+}
+
 e.preventDefault();
 
 });
@@ -1781,7 +1791,17 @@ return false;
 
 };
 
-document.onselectstart = function(){
+document.onselectstart = function(e){
+
+const aktif = document.activeElement;
+
+// izinkan select di input manual
+if(
+aktif &&
+aktif.id === "manualBarcode"
+){
+return true;
+}
 
 return false;
 
