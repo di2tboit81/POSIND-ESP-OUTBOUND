@@ -1714,17 +1714,26 @@ showNotif(
 
 }
 
-/* ===== ANTI INSPECT ===== */
+/* ===== ANTI INSPECT AMAN MOBILE ===== */
 
+// ELEMENT YANG BOLEH COPY PASTE
+function isAllowedInput(el){
+
+if(!el) return false;
+
+return (
+el.id === "manualBarcode" ||
+el.id === "inputBeratKg" ||
+el.tagName === "INPUT" ||
+el.tagName === "TEXTAREA"
+);
+
+}
+
+// ================= CONTEXT MENU =================
 document.addEventListener("contextmenu", function(e){
 
-const aktif = document.activeElement;
-
-// izinkan menu paste di input manual
-if(
-aktif &&
-aktif.id === "manualBarcode"
-){
+if(isAllowedInput(e.target)){
 return true;
 }
 
@@ -1732,35 +1741,48 @@ e.preventDefault();
 
 });
 
+// ================= SELECT =================
+document.onselectstart = function(e){
+
+if(isAllowedInput(document.activeElement)){
+return true;
+}
+
+return false;
+
+};
+
+// ================= COPY =================
+document.oncopy = function(e){
+
+if(isAllowedInput(document.activeElement)){
+return true;
+}
+
+e.preventDefault();
+return false;
+
+};
+
+// ================= PASTE =================
+document.onpaste = function(e){
+
+if(isAllowedInput(document.activeElement)){
+return true;
+}
+
+e.preventDefault();
+return false;
+
+};
+
+// ================= KEYBOARD BLOCK =================
 document.onkeydown = function(e){
 
-// IZINKAN CTRL + C / CTRL + V hanya di input manual barcode
-const aktif = document.activeElement;
+// IZINKAN DI INPUT
+if(isAllowedInput(document.activeElement)){
 
-if(
-aktif &&
-aktif.id === "manualBarcode"
-){
-
-// Ctrl+C
-if(e.ctrlKey && e.keyCode == 67){
 return true;
-}
-
-// Ctrl+V
-if(e.ctrlKey && e.keyCode == 86){
-return true;
-}
-
-// Ctrl+X
-if(e.ctrlKey && e.keyCode == 88){
-return true;
-}
-
-// Ctrl+A
-if(e.ctrlKey && e.keyCode == 65){
-return true;
-}
 
 }
 
@@ -1788,41 +1810,6 @@ return false;
 if(e.ctrlKey && e.shiftKey && e.keyCode == 67){
 return false;
 }
-
-};
-
-document.onselectstart = function(e){
-
-const aktif = document.activeElement;
-
-// izinkan select di input manual
-if(
-aktif &&
-aktif.id === "manualBarcode"
-){
-return true;
-}
-
-return false;
-
-};
-
-document.oncopy = function(e){
-
-// IZINKAN COPY hanya di input manual barcode
-const aktif =
-document.activeElement;
-
-if(
-aktif &&
-aktif.id === "manualBarcode"
-){
-return true;
-}
-
-// selain itu tetap diblok
-e.preventDefault();
-return false;
 
 };
 
