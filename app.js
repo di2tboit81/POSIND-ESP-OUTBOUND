@@ -1724,6 +1724,36 @@ e.preventDefault();
 
 document.onkeydown = function(e){
 
+// IZINKAN CTRL + C / CTRL + V hanya di input manual barcode
+const aktif = document.activeElement;
+
+if(
+aktif &&
+aktif.id === "manualBarcode"
+){
+
+// Ctrl+C
+if(e.ctrlKey && e.keyCode == 67){
+return true;
+}
+
+// Ctrl+V
+if(e.ctrlKey && e.keyCode == 86){
+return true;
+}
+
+// Ctrl+X
+if(e.ctrlKey && e.keyCode == 88){
+return true;
+}
+
+// Ctrl+A
+if(e.ctrlKey && e.keyCode == 65){
+return true;
+}
+
+}
+
 // F12
 if(e.keyCode == 123){
 return false;
@@ -1757,8 +1787,21 @@ return false;
 
 };
 
-document.oncopy = function(){
+document.oncopy = function(e){
 
+// IZINKAN COPY hanya di input manual barcode
+const aktif =
+document.activeElement;
+
+if(
+aktif &&
+aktif.id === "manualBarcode"
+){
+return true;
+}
+
+// selain itu tetap diblok
+e.preventDefault();
 return false;
 
 };
