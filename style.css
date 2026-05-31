@@ -1330,3 +1330,368 @@ user-select:text !important;
 pointer-events:auto !important;
 
 }
+
+#historyTanggal{
+width:100%;
+padding:10px;
+border-radius:8px;
+margin-bottom:10px;
+}
+
+#historyList{
+max-height:400px;
+overflow:auto;
+}
+
+.history-table{
+width:100%;
+border-collapse:collapse;
+}
+
+.history-table th,
+.history-table td{
+border:1px solid #ddd;
+padding:6px;
+font-size:12px;
+text-align:center;
+}
+
+.history-table th{
+background:#FF6A00;
+color:white;
+}
+
+/* ================= HISTORY ================= */
+
+.history-card{
+text-align:center;
+}
+
+.history-header{
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
+.history-icon{
+font-size:55px;
+margin-bottom:10px;
+}
+
+.history-title{
+margin:0;
+font-size:28px;
+font-weight:800;
+color:#111827;
+}
+
+.history-subtitle{
+margin:8px 0 18px;
+font-size:14px;
+color:#6b7280;
+}
+
+.history-select{
+width:100%;
+max-width:350px;
+padding:14px 18px;
+border:none;
+outline:none;
+border-radius:16px;
+font-size:15px;
+font-weight:700;
+text-align:center;
+cursor:pointer;
+
+background:linear-gradient(
+135deg,
+#ff6a00,
+#ff9500
+);
+
+color:white;
+
+box-shadow:
+0 10px 25px rgba(255,106,0,.25);
+
+transition:.3s;
+}
+
+.history-select:hover{
+transform:translateY(-2px);
+box-shadow:
+0 15px 35px rgba(255,106,0,.35);
+}
+
+.history-select option{
+background:white;
+color:#111827;
+font-weight:600;
+}
+
+/* ================= EDIT DATA PREMIUM ================= */
+
+#editBox{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,.8);
+backdrop-filter:blur(6px);
+z-index:999999;
+}
+
+.edit-modal{
+
+width:90%;
+max-width:420px;
+
+background:linear-gradient(
+145deg,
+#0f172a,
+#111827
+);
+
+padding:25px;
+
+border-radius:22px;
+
+border:2px solid #FF6A00;
+
+box-shadow:
+0 0 25px rgba(255,106,0,.8),
+0 0 60px rgba(255,106,0,.4),
+inset 0 0 20px rgba(255,255,255,.04);
+
+animation:editPopup .25s ease;
+}
+
+/* WARNA INPUT FORM EDIT */
+
+#editBarcode,
+#editBerat{
+
+width:100%;
+padding:14px;
+
+background:#0F172A;
+
+color:white;
+
+border:1px solid #334155;
+
+border-radius:14px;
+
+font-size:16px;
+
+margin-bottom:12px;
+
+}
+
+#editBarcode::placeholder,
+#editBerat::placeholder{
+
+color:#94A3B8;
+
+}
+
+@keyframes editPopup{
+from{
+transform:scale(.8);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.edit-title{
+
+text-align:center;
+font-size:22px;
+font-weight:800;
+color:#FF6A00;
+
+margin-bottom:20px;
+
+text-shadow:
+0 0 10px #FF6A00,
+0 0 20px rgba(255,106,0,.5);
+
+}
+
+#editBarcode,
+#editBerat{
+
+width:100%;
+
+padding:14px;
+
+border:none;
+
+border-radius:14px;
+
+background:#020617;
+
+color:white;
+
+font-size:16px;
+
+margin-bottom:12px;
+
+box-shadow:
+inset 0 0 10px rgba(0,0,0,.8),
+0 0 8px rgba(255,106,0,.25);
+
+}
+
+#editBarcode:focus,
+#editBerat:focus{
+
+outline:none;
+
+box-shadow:
+0 0 15px #FF6A00,
+0 0 25px rgba(255,106,0,.5);
+
+}
+
+.edit-buttons{
+
+display:flex;
+gap:10px;
+margin-top:15px;
+
+}
+
+/* TOMBOL SIMPAN */
+
+.btn-edit-simpan{
+
+flex:1;
+
+background:
+linear-gradient(
+135deg,
+#16a34a,
+#22c55e
+);
+
+color:white;
+
+font-weight:800;
+
+border:none;
+
+border-radius:14px;
+
+padding:14px;
+
+cursor:pointer;
+
+box-shadow:
+0 0 15px rgba(34,197,94,.5);
+
+}
+
+.btn-edit-simpan:hover{
+
+transform:translateY(-3px);
+
+box-shadow:
+0 0 25px rgba(34,197,94,.8);
+
+}
+
+/* TOMBOL BATAL */
+
+.btn-edit-batal{
+
+flex:1;
+
+background:
+linear-gradient(
+135deg,
+#dc2626,
+#ef4444
+);
+
+color:white;
+
+font-weight:800;
+
+border:none;
+
+border-radius:14px;
+
+padding:14px;
+
+cursor:pointer;
+
+box-shadow:
+0 0 15px rgba(239,68,68,.5);
+
+}
+
+.btn-edit-batal:hover{
+
+transform:translateY(-3px);
+
+box-shadow:
+0 0 25px rgba(239,68,68,.8);
+
+}
+
+/* TOMBOL EDIT DI TABEL */
+
+.btn-warning{
+
+width:40px !important;
+height:40px !important;
+
+padding:0 !important;
+
+background:
+linear-gradient(
+135deg,
+#FF6A00,
+#ff9500
+);
+
+border:none;
+
+border-radius:12px;
+
+color:white;
+
+font-size:18px;
+
+font-weight:bold;
+
+cursor:pointer;
+
+box-shadow:
+0 0 12px rgba(255,106,0,.6);
+
+}
+
+.btn-warning:hover{
+
+transform:scale(1.1);
+
+box-shadow:
+0 0 20px rgba(255,106,0,.9);
+
+}
+
+#editBox input{
+background:#0F172A !important;
+color:#fff !important;
+border:1px solid #334155 !important;
+}
