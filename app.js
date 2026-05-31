@@ -307,12 +307,44 @@ let table=document.getElementById("tabelData");
 
 let row=table.insertRow();
 
-row.insertCell(0).innerHTML = table.rows.length - 1;
-row.insertCell(1).innerHTML = barcode;
-row.insertCell(2).innerHTML = berat.toFixed(2);
+row.insertCell(0).innerHTML =
+table.rows.length - 1;
 
+row.insertCell(1).innerHTML =
+barcode;
+
+row.insertCell(2).innerHTML =
+parseFloat(berat).toFixed(2);
+
+// KOLOM EDIT
 row.insertCell(3).innerHTML =
-`<button class="btn-danger" onclick="hapusBaris(this,'${barcode}')">X</button>`;
+`
+<button
+class="btn-warning"
+onclick="editBaris(this,'${barcode}')">
+📅
+</button>
+`;
+
+// KOLOM HAPUS
+row.insertCell(4).innerHTML =
+`
+<button
+class="btn-danger"
+onclick="hapusBaris(this,'${barcode}')">
+X
+</button>
+`;
+
+// ===== TAMBAHAN ROLE =====
+const role =
+localStorage.getItem("role_r7");
+
+if(role === "user"){
+
+hideDeleteColumn();
+
+}
 
 }
 
@@ -368,6 +400,7 @@ document.getElementById("tabelData").innerHTML =
 <th>No</th>
 <th>Kantong</th>
 <th>Berat (KG)</th>
+<th>Edit</th>
 <th>Hapus</th>
 </tr>`;
 
@@ -1063,11 +1096,13 @@ wb,
 // LOAD DATA SAAT PAGE DIBUKA
 window.onload = function(){
 
-// load form saja
 loadFormR7();
 
-// data scan FULL dari firebase realtime
-// jadi tidak perlu loadLocal lagi
+loadHistoryTanggal();
+
+loadHistoryAktif();
+
+autoDeleteHistory7Hari();
 
 };
 
@@ -1264,6 +1299,10 @@ timestamp: Date.now()
 
 roomDataRef.on("value", snapshot => {
 
+if(sedangLoadHistory){
+return;
+}
+
 const data = snapshot.val();
 
 // RESET ARRAY
@@ -1276,6 +1315,7 @@ document.getElementById("tabelData").innerHTML =
 <th>No</th>
 <th>Kantong</th>
 <th>Berat (KG)</th>
+<th>Edit</th>
 <th>Hapus</th>
 </tr>`;
 
@@ -1435,6 +1475,7 @@ document.getElementById("tabelData").innerHTML =
 <th>No</th>
 <th>Kantong</th>
 <th>Berat (KG)</th>
+<th>Edit</th>
 <th>Hapus</th>
 </tr>`;
 
@@ -1527,6 +1568,12 @@ barcodePending = null;
 
 function lanjutProsesBarcode(barcode, berat){
 
+sedangLoadHistory = false;
+
+localStorage.removeItem(
+"r7_history_aktif"
+);
+
 // Simpan data
 scannedBarcodes.push(barcode);
 
@@ -1542,6 +1589,8 @@ tambahData(barcode,berat);
 
 // 🔥 KIRIM KE FIREBASE DI SINI
 kirimKeFirebase(barcode, berat);
+
+simpanHistory(barcode, berat);
 
 // Update counter
 updateScanCounter();
@@ -1576,6 +1625,9 @@ simpanBerat();
 
 let barcodeDelete = null;
 let tombolDelete = null;
+
+let barcodeEdit = null;
+let tombolEdit = null;
 
 function hapusBaris(btn,barcode){
 
@@ -1624,6 +1676,15 @@ updateNomor();
 updateScanCounter();
 updateTotalBerat();
 simpanLocal();
+
+// update history aktif
+historyDataTerpilih =
+historyDataTerpilih.filter(
+d => d.barcode !== barcodeDelete
+);
+
+simpanHistoryAktif();
+
 
 // TUTUP MODAL
 document.getElementById(
@@ -1701,6 +1762,7 @@ document.getElementById("tabelData").innerHTML =
 <th>No</th>
 <th>Kantong</th>
 <th>Berat (KG)</th>
+<th>Edit</th>
 <th>Hapus</th>
 </tr>`;
 
@@ -1950,6 +2012,66 @@ document.getElementById("modalBC").style.display = "none";
 // =============================
 
 const roomBCRef = roomRoot.child("DATA_BC");
+
+// =============================
+// HISTORY
+// =============================
+
+const historyRoot =
+db.ref("R7_HISTORY");
+
+// =============================
+// AUTO DELETE HISTORY > 7 HARI
+// =============================
+
+function autoDeleteHistory7Hari(){
+
+historyRoot.once("value",snapshot=>{
+
+snapshot.forEach(item=>{
+
+const tanggal = item.key;
+
+const split = tanggal.split("-");
+
+if(split.length !== 3) return;
+
+const tanggalData = new Date(
+
+parseInt(split[2]),
+parseInt(split[1]) - 1,
+parseInt(split[0])
+
+);
+
+const sekarang = new Date();
+
+const selisihHari = Math.floor(
+
+(sekarang - tanggalData)
+/
+(1000*60*60*24)
+
+);
+
+if(selisihHari > 7){
+
+console.log(
+"HAPUS HISTORY LAMA:",
+tanggal
+);
+
+historyRoot
+.child(tanggal)
+.remove();
+
+}
+
+});
+
+});
+
+}
 
 // =============================
 // IMPORT FILE BC
@@ -2219,21 +2341,38 @@ cekPasswordBC();
 
 // ================= LOGIN APP =================
 
-const APP_USER = "Win29400";
-const APP_PASS = "29400";
+const USERS = {
+
+win29400 : {
+password : "29400",
+role : "user"
+},
+
+admin : {
+password : "Di2tboit",
+role : "admin"
+}
+
+};
 
 // CEK LOGIN TERSIMPAN
 window.addEventListener("load", ()=>{
 
-const isLogin = localStorage.getItem("login_r7");
+const isLogin =
+localStorage.getItem("login_r7");
 
 if(isLogin === "true"){
 
-document.getElementById("loginOverlay").style.display = "none";
+document.getElementById(
+"loginOverlay"
+).style.display = "none";
+
+cekRoleUser();
 
 }else{
 
-document.body.style.overflow = "hidden";
+document.body.style.overflow =
+"hidden";
 
 }
 
@@ -2242,32 +2381,160 @@ document.body.style.overflow = "hidden";
 // FUNGSI LOGIN
 function loginApp(){
 
-const user = document.getElementById("username").value.trim();
-const pass = document.getElementById("password").value.trim();
+const user =
+document.getElementById("username")
+.value.trim().toLowerCase();
 
-const notif = document.getElementById("loginNotif");
+const pass =
+document.getElementById("password")
+.value.trim();
 
-if(user === APP_USER && pass === APP_PASS){
+const notif =
+document.getElementById("loginNotif");
 
-localStorage.setItem("login_r7","true");
+if(
+USERS[user] &&
+USERS[user].password === pass
+){
 
-document.getElementById("loginOverlay").style.opacity = "0";
+localStorage.setItem(
+"login_r7",
+"true"
+);
+
+localStorage.setItem(
+"role_r7",
+USERS[user].role
+);
+
+document.getElementById(
+"loginOverlay"
+).style.opacity = "0";
 
 setTimeout(()=>{
 
-document.getElementById("loginOverlay").style.display = "none";
+document.getElementById(
+"loginOverlay"
+).style.display = "none";
 
 document.body.style.overflow = "auto";
+
+cekRoleUser();
 
 },400);
 
 }else{
 
-notif.innerHTML = "Username / Password Salah";
+notif.innerHTML =
+"Username / Password Salah";
 
 navigator.vibrate?.(200);
 
 }
+
+}
+
+function cekRoleUser(){
+
+const role =
+localStorage.getItem("role_r7");
+
+if(role === "user"){
+
+sembunyikanMenuUser();
+
+}else{
+
+tampilkanSemuaMenu();
+
+}
+
+}
+
+function sembunyikanMenuUser(){
+
+// IMPORT BC
+const btnImportBC =
+document.getElementById("btnImportBC");
+
+if(btnImportBC){
+btnImportBC.style.display = "none";
+}
+
+// HISTORY
+const boxHistory =
+document.getElementById("historyContainer");
+
+if(boxHistory){
+boxHistory.style.display = "none";
+}
+
+// SEMBUNYIKAN KOLOM HAPUS
+hideDeleteColumn();
+
+}
+
+function tampilkanSemuaMenu(){
+
+const btnImportBC =
+document.getElementById("btnImportBC");
+
+if(btnImportBC){
+btnImportBC.style.display = "";
+}
+
+const boxHistory =
+document.getElementById("historyContainer");
+
+if(boxHistory){
+boxHistory.style.display = "";
+}
+
+showDeleteColumn();
+
+}
+
+function hideDeleteColumn(){
+
+// Header
+document
+.querySelectorAll("#tabelData tr th")[4]
+?.style.setProperty(
+"display",
+"none"
+);
+
+// Semua tombol hapus
+document
+.querySelectorAll(
+"#tabelData tr td:nth-child(5)"
+)
+.forEach(td=>{
+
+td.style.display = "none";
+
+});
+
+}
+
+function showDeleteColumn(){
+
+document
+.querySelectorAll("#tabelData tr th")[4]
+?.style.setProperty(
+"display",
+"table-cell"
+);
+
+document
+.querySelectorAll(
+"#tabelData tr td:nth-child(5)"
+)
+.forEach(td=>{
+
+td.style.display = "table-cell";
+
+});
 
 }
 
@@ -2296,5 +2563,786 @@ document
 .addEventListener("click",()=>{
 
 localStorage.removeItem("login_r7");
+localStorage.removeItem("role_r7");
 
 });
+
+
+// =============================
+// SIMPAN HISTORY
+// =============================
+
+function simpanHistory(barcode,berat){
+
+const now = new Date();
+
+const tanggalHistory =
+("0"+now.getDate()).slice(-2) + "-" +
+("0"+(now.getMonth()+1)).slice(-2) + "-" +
+now.getFullYear();
+
+historyRoot
+.child(tanggalHistory)
+.push({
+
+barcode : barcode,
+berat : berat,
+
+petugas :
+document.getElementById("petugas").value,
+
+driver :
+document.getElementById("driver").value,
+
+nopol :
+document.getElementById("nopol").value,
+
+angkutan :
+document.getElementById("angkutan").value,
+
+mode :
+document.getElementById("mode").value,
+
+nosurat :
+document.getElementById("nosurat").value,
+
+tujuan :
+document.getElementById("tujuan").value,
+
+timestamp : Date.now()
+
+});
+loadHistoryTanggal();
+}
+
+function loadHistoryTanggal(){
+
+historyRoot.once("value",snapshot=>{
+
+let html =
+`
+<option value="" selected disabled>
+📅 PILIH TANGGAL HISTORY
+</option>
+`;
+
+snapshot.forEach(item=>{
+
+html += `
+<option value="${item.key}">
+${item.key}
+</option>
+`;
+
+});
+
+document.getElementById(
+"historyTanggal"
+).innerHTML = html;
+
+});
+
+}
+
+let historyDataTerpilih = [];
+let historyTanggalAktif = "";
+
+let sedangLoadHistory = false;
+
+// SIMPAN HISTORY YANG SEDANG DILOAD
+function simpanHistoryAktif(){
+
+localStorage.setItem(
+"r7_history_aktif",
+JSON.stringify({
+
+tanggal:
+document.getElementById("historyTanggal").value,
+
+data: historyDataTerpilih
+
+})
+);
+
+}
+
+// LOAD KEMBALI SAAT RELOAD
+function loadHistoryAktif(){
+
+const saved =
+localStorage.getItem("r7_history_aktif");
+
+if(!saved) return;
+
+try{
+
+const obj = JSON.parse(saved);
+
+if(!obj.data || obj.data.length===0){
+return;
+}
+
+sedangLoadHistory = true;
+
+scannedBarcodes = [];
+scannedData = [];
+
+document.getElementById("tabelData").innerHTML = `
+<tr>
+<th>No</th>
+<th>Kantong</th>
+<th>Berat (KG)</th>
+<th>Edit</th>
+<th>Hapus</th>
+</tr>
+`;
+
+obj.data.forEach(item=>{
+
+scannedBarcodes.push(item.barcode);
+
+scannedData.push({
+barcode:item.barcode,
+berat:parseFloat(item.berat)
+});
+
+tambahData(
+item.barcode,
+parseFloat(item.berat)
+);
+
+});
+
+updateScanCounter();
+updateTotalBerat();
+
+sedangLoadHistory = false;
+
+}catch(err){
+
+console.log(err);
+
+}
+
+}
+
+function tampilHistory(tanggal){
+
+console.log("Tanggal Dipilih:", tanggal);
+
+historyRoot
+.child(tanggal)
+.once("value",snapshot=>{
+
+console.log("Data Firebase:", snapshot.val());
+
+let totalKantong = 0;
+let totalBerat = 0;
+
+historyDataTerpilih = [];
+
+snapshot.forEach(item=>{
+
+const d = item.val();
+
+console.log("DATA HISTORY =", d);
+
+historyDataTerpilih.push(d);
+
+totalKantong++;
+
+totalBerat += parseFloat(d.berat || 0);
+
+});
+
+console.log("TOTAL KANTONG =", totalKantong);
+console.log("TOTAL BERAT =", totalBerat);
+
+document.getElementById("historyList").innerHTML = `
+
+<div style="
+max-width:500px;
+margin:20px auto;
+background:linear-gradient(135deg,#ffffff,#f8fafc);
+border-radius:20px;
+padding:25px;
+text-align:center;
+box-shadow:0 10px 30px rgba(0,0,0,.12);
+border:1px solid #e5e7eb;
+animation:fadeHistory .4s ease;
+">
+
+<div style="
+font-size:50px;
+margin-bottom:10px;
+">
+📋
+</div>
+
+<h2 style="
+margin:0;
+color:#111827;
+font-size:24px;
+font-weight:800;
+">
+History R7
+</h2>
+
+<div style="
+margin-top:20px;
+display:flex;
+justify-content:center;
+gap:15px;
+flex-wrap:wrap;
+">
+
+<div style="
+background:#f3f4f6;
+padding:15px;
+border-radius:15px;
+min-width:150px;
+">
+
+<div style="
+font-size:13px;
+color:#6b7280;
+">
+Jumlah Kantong
+</div>
+
+<div style="
+font-size:28px;
+font-weight:900;
+color:#2563eb;
+margin-top:5px;
+">
+${totalKantong}
+</div>
+
+</div>
+
+<div style="
+background:#f3f4f6;
+padding:15px;
+border-radius:15px;
+min-width:150px;
+">
+
+<div style="
+font-size:13px;
+color:#6b7280;
+">
+Total Berat
+</div>
+
+<div style="
+font-size:28px;
+font-weight:900;
+color:#16a34a;
+margin-top:5px;
+">
+${totalBerat.toFixed(2)}
+</div>
+
+<div style="
+font-size:12px;
+color:#6b7280;
+">
+KG
+</div>
+
+</div>
+
+</div>
+
+<button
+onclick="loadHistoryKeTabel()"
+style="
+margin-top:25px;
+padding:14px 35px;
+border:none;
+border-radius:50px;
+font-size:16px;
+font-weight:700;
+cursor:pointer;
+background:linear-gradient(135deg,#ff6a00,#ff9500);
+color:white;
+box-shadow:0 8px 20px rgba(255,106,0,.35);
+transition:.25s;
+"
+onmouseover="this.style.transform='scale(1.05)'"
+onmouseout="this.style.transform='scale(1)'"
+>
+📂 LOAD DATA HISTORY
+</button>
+
+</div>
+
+<style>
+
+@keyframes fadeHistory{
+from{
+opacity:0;
+transform:translateY(15px);
+}
+to{
+opacity:1;
+transform:translateY(0);
+}
+}
+
+</style>
+
+`;
+
+});
+}
+
+// =============================
+// HAPUS HISTORY PER TANGGAL
+// =============================
+
+function hapusHistoryTanggal(){
+
+const tanggal =
+document.getElementById("historyTanggal").value;
+
+if(!tanggal){
+
+showNotif(
+"❌ Pilih tanggal history dulu",
+"error"
+);
+
+return;
+
+}
+
+let yakin = confirm(
+
+"⚠️ YAKIN MAU HAPUS HISTORY TANGGAL\n\n" +
+tanggal +
+"\n\nDATA AKAN HILANG PERMANEN!"
+
+);
+
+if(!yakin) return;
+
+// HAPUS FIREBASE
+historyRoot.child(tanggal).remove()
+
+.then(()=>{
+
+document.getElementById(
+"historyList"
+).innerHTML = "";
+
+historyDataTerpilih = [];
+
+loadHistoryTanggal();
+
+showNotif(
+"✅ History berhasil dihapus",
+"success"
+);
+
+})
+
+.catch(err=>{
+
+console.log(err);
+
+showNotif(
+"❌ Gagal menghapus history",
+"error"
+);
+
+});
+
+}
+
+document.addEventListener("change",function(e){
+
+if(e.target.id==="historyTanggal"){
+
+tampilHistory(e.target.value);
+
+}
+
+});
+
+function loadHistoryKeTabel(){
+
+if(historyDataTerpilih.length===0){
+
+showNotif(
+"❌ Tidak ada data history",
+"error"
+);
+
+return;
+
+}
+
+// HAPUS DATA ROOM AKTIF DULU
+roomDataRef.remove().then(()=>{
+
+// reset lokal
+scannedBarcodes = [];
+scannedData = [];
+
+document.getElementById("tabelData").innerHTML = `
+<tr>
+<th>No</th>
+<th>Kantong</th>
+<th>Berat (KG)</th>
+<th>Edit</th>
+<th>Hapus</th>
+</tr>
+`;
+
+// LOAD HISTORY
+historyDataTerpilih.forEach(item=>{
+
+const berat = parseFloat(item.berat || 0);
+
+// array lokal
+scannedBarcodes.push(item.barcode);
+
+scannedData.push({
+barcode:item.barcode,
+berat:berat
+});
+
+// tabel lokal
+tambahData(item.barcode, berat);
+
+// KIRIM KE FIREBASE
+roomDataRef.child(item.barcode).set({
+barcode : item.barcode,
+berat : berat,
+timestamp : Date.now()
+});
+
+});
+
+// =============================
+// COPY HISTORY KE HARI INI
+// =============================
+
+const now = new Date();
+
+const tanggalHariIni =
+("0"+now.getDate()).slice(-2) + "-" +
+("0"+(now.getMonth()+1)).slice(-2) + "-" +
+now.getFullYear();
+
+const tanggalYangDiload =
+document.getElementById("historyTanggal").value;
+
+if(tanggalHariIni !== tanggalYangDiload){
+
+historyDataTerpilih.forEach(item=>{
+
+historyRoot
+.child(tanggalHariIni)
+.push({
+
+barcode : item.barcode,
+berat : item.berat,
+
+petugas :
+document.getElementById("petugas").value,
+
+driver :
+document.getElementById("driver").value,
+
+nopol :
+document.getElementById("nopol").value,
+
+angkutan :
+document.getElementById("angkutan").value,
+
+mode :
+document.getElementById("mode").value,
+
+nosurat :
+document.getElementById("nosurat").value,
+
+tujuan :
+document.getElementById("tujuan").value,
+
+timestamp : Date.now()
+
+});
+
+});
+
+}
+
+updateScanCounter();
+updateTotalBerat();
+
+simpanLocal();
+
+sedangLoadHistory = true;
+
+simpanHistoryAktif();
+
+showNotif(
+"✅ History berhasil dimuat & disinkronkan",
+"success"
+);
+
+});
+
+}
+
+function editBaris(btn,barcode){
+
+const data =
+scannedData.find(
+d => d.barcode === barcode
+);
+
+if(!data) return;
+
+barcodeEdit = barcode;
+tombolEdit = btn;
+
+document.getElementById(
+"editBarcode"
+).value = barcode;
+
+document.getElementById(
+"editBerat"
+).value = data.berat;
+
+document.getElementById(
+"editBox"
+).style.display = "flex";
+
+}
+
+function batalEditData(){
+
+barcodeEdit = null;
+tombolEdit = null;
+
+document.getElementById(
+"editBox"
+).style.display = "none";
+
+}
+
+function simpanEditData(){
+
+let barcodeBaru =
+document.getElementById(
+"editBarcode"
+).value
+.trim()
+.toUpperCase();
+
+let beratBaru =
+parseFloat(
+document.getElementById(
+"editBerat"
+).value
+);
+
+if(!barcodeBaru){
+
+showNotif(
+"❌ No Kantong kosong",
+"error"
+);
+
+return;
+
+}
+
+if(isNaN(beratBaru)){
+
+showNotif(
+"❌ Berat tidak valid",
+"error"
+);
+
+return;
+
+}
+
+// HAPUS DATA LAMA FIREBASE
+roomDataRef
+.child(barcodeEdit)
+.remove()
+
+.then(()=>{
+
+// UPDATE ARRAY BARCODE
+let indexBarcode =
+scannedBarcodes.indexOf(
+barcodeEdit
+);
+
+if(indexBarcode > -1){
+
+scannedBarcodes[indexBarcode] =
+barcodeBaru;
+
+}
+
+// UPDATE ARRAY DATA
+let indexData =
+scannedData.findIndex(
+d => d.barcode === barcodeEdit
+);
+
+if(indexData > -1){
+
+scannedData[indexData] = {
+
+barcode : barcodeBaru,
+berat : beratBaru
+
+};
+
+}
+
+// SIMPAN FIREBASE BARU
+roomDataRef
+.child(barcodeBaru)
+.set({
+
+barcode : barcodeBaru,
+berat : beratBaru,
+timestamp : Date.now()
+
+});
+
+// REFRESH TABEL
+document.getElementById(
+"tabelData"
+).innerHTML =
+`
+<tr>
+<th>No</th>
+<th>Kantong</th>
+<th>Berat (KG)</th>
+<th>Edit</th>
+<th>Hapus</th>
+</tr>
+`;
+
+scannedData.forEach(item=>{
+
+tambahData(
+item.barcode,
+item.berat
+);
+
+});
+
+updateScanCounter();
+updateTotalBerat();
+simpanLocal();
+
+document.getElementById(
+"editBox"
+).style.display = "none";
+
+showNotif(
+"✅ Data berhasil diedit",
+"success"
+);
+
+barcodeEdit = null;
+tombolEdit = null;
+
+});
+
+}
+
+function hideDeleteColumn(){
+
+// sembunyikan header hapus
+const header =
+document.querySelector(
+"#tabelData tr th:nth-child(5)"
+);
+
+if(header){
+header.style.display = "none";
+}
+
+// sembunyikan seluruh kolom hapus
+document
+.querySelectorAll(
+"#tabelData tr td:nth-child(5)"
+)
+.forEach(td=>{
+
+td.style.display = "none";
+
+});
+
+}
+
+function sembunyikanMenuUser(){
+
+// tombol import BC
+const btnImportBC =
+document.getElementById("btnImportBC");
+
+if(btnImportBC){
+btnImportBC.style.display = "none";
+}
+
+// card history
+const historyContainer =
+document.getElementById("historyContainer");
+
+if(historyContainer){
+historyContainer.style.display = "none";
+}
+
+// kolom hapus
+hideDeleteColumn();
+
+}
+
+function tampilkanSemuaMenu(){
+
+const btnImportBC =
+document.getElementById("btnImportBC");
+
+if(btnImportBC){
+btnImportBC.style.display = "";
+}
+
+const historyContainer =
+document.getElementById("historyContainer");
+
+if(historyContainer){
+historyContainer.style.display = "";
+}
+
+}
+
+function cekRoleUser(){
+
+const role =
+localStorage.getItem("role_r7");
+
+if(role === "user"){
+
+sembunyikanMenuUser();
+
+}else{
+
+tampilkanSemuaMenu();
+
+}
+
+}
