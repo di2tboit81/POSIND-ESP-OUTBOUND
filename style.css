@@ -1695,3 +1695,29 @@ background:#0F172A !important;
 color:#fff !important;
 border:1px solid #334155 !important;
 }
+
+/* FORM EDIT RATA TENGAH */
+#editBarcode,
+#editBerat{
+text-align:center !important;
+}
+
+/* Jika ada placeholder */
+#editBarcode::placeholder,
+#editBerat::placeholder{
+text-align:center;
+}
+
+.edit-modal{
+text-align:center;
+}
+
+#editBarcode,
+#editBerat{
+text-align:center !important;
+font-weight:700;
+}
+
+.edit-buttons{
+justify-content:center;
+}
