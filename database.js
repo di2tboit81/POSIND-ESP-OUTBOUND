@@ -1,14 +1,1 @@
-const firebaseConfig = {
-    apiKey: "AIzaSyBQeh3uUSQu69VXyslaqyPQ6cR8eX5M5s4",
-    authDomain: "win-29400.firebaseapp.com",
-    databaseURL: "https://win-29400-default-rtdb.firebaseio.com",
-    projectId: "win-29400",
-    storageBucket: "win-29400.firebasestorage.app",
-    messagingSenderId: "186236557243",
-    appId: "1:186236557243:web:1e26f6848dd917a4cb969e"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-
+const firebaseConfig={'apiKey':'AIzaSyBQeh3uUSQu69VXyslaqyPQ6cR8eX5M5s4','authDomain':'win-29400.firebaseapp.com','databaseURL':'https://win-29400-default-rtdb.firebaseio.com','projectId':'win-29400','storageBucket':'win-29400.firebasestorage.app','messagingSenderId':'186236557243','appId':'1:186236557243:web:1e26f6848dd917a4cb969e'};firebase['initializeApp'](firebaseConfig);const db=firebase['database']();globalThis['firebaseConfig']=firebaseConfig;globalThis['db']=db;
