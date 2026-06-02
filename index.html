@@ -1,20 +1,565 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>R7 ( BUKTI SERAH KIRIM ) POSIND - ESP</title>
+
+<link rel="icon" href="SPX-OUTBOUND.png">
+
+<!-- FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
+
+<!-- LIBRARY -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 </head>
+
 <body>
 
-<script>
+<!-- ================= LOGIN OVERLAY ================= -->
 
-const data = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImlkIj4KPGhlYWQ+CjxtZXRhIGNoYXJzZXQ9IlVURi04Ij4KPG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCwgaW5pdGlhbC1zY2FsZT0xLjAiPgoKPHRpdGxlPlI3ICggQlVLVEkgU0VSQUggS0lSSU0gKSBQT1NJTkQgLSBFU1A8L3RpdGxlPgoKPGxpbmsgcmVsPSJpY29uIiBocmVmPSJTUFgtT1VUQk9VTkQucG5nIj4KCjwhLS0gRk9OVCAtLT4KPGxpbmsgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbS9jc3MyP2ZhbWlseT1Qb3BwaW5zOndnaHRANDAwOzYwMDs3MDAmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiPgoKPCEtLSBDU1MgLS0+CjxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0ic3R5bGUuY3NzIj4KCjwhLS0gTElCUkFSWSAtLT4KPHNjcmlwdCBzcmM9Imh0dHBzOi8vdW5wa2cuY29tL2h0bWw1LXFyY29kZSI+PC9zY3JpcHQ+CjxzY3JpcHQgc3JjPSJodHRwczovL2Nkbi5qc2RlbGl2ci5uZXQvbnBtL3FyY29kZS9idWlsZC9xcmNvZGUubWluLmpzIj48L3NjcmlwdD4KPHNjcmlwdCBzcmM9Imh0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9ucG0veGxzeC1qcy1zdHlsZUAxLjIuMC9kaXN0L3hsc3guYnVuZGxlLmpzIj48L3NjcmlwdD4KCjwhLS0gRklSRUJBU0UgLS0+CjxzY3JpcHQgc3JjPSJodHRwczovL3d3dy5nc3RhdGljLmNvbS9maXJlYmFzZWpzLzEwLjEyLjAvZmlyZWJhc2UtYXBwLWNvbXBhdC5qcyI+PC9zY3JpcHQ+CjxzY3JpcHQgc3JjPSJodHRwczovL3d3dy5nc3RhdGljLmNvbS9maXJlYmFzZWpzLzEwLjEyLjAvZmlyZWJhc2UtZGF0YWJhc2UtY29tcGF0LmpzIj48L3NjcmlwdD4KCjwvaGVhZD4KCjxib2R5PgoKPCEtLSA9PT09PT09PT09PT09PT09PSBMT0dJTiBPVkVSTEFZID09PT09PT09PT09PT09PT09IC0tPgoKPGRpdiBpZD0ibG9naW5PdmVybGF5Ij4KCjxkaXYgY2xhc3M9ImxvZ2luLWJnIj48L2Rpdj4KCjxkaXYgY2xhc3M9ImxvZ2luLWJveCI+Cgo8ZGl2IGNsYXNzPSJsb2dpbi1sb2dvIj4KPGltZyBzcmM9IlNQWC1PVVRCT1VORC5wbmciPgo8L2Rpdj4KCjxoMT5SNyBQT1NJTkQ8L2gxPgoKPHA+ClBST09GIE9GIEhBTkRPVkVSIFRPIEVTUAo8L3A+Cgo8IS0tIElOUFVUIFVTRVIgLS0+CjxkaXYgY2xhc3M9ImlucHV0LWdyb3VwIj4KCjxpbnB1dAp0eXBlPSJ0ZXh0IgppZD0idXNlcm5hbWUiCnBsYWNlaG9sZGVyPSJVU0VSTkFNRSIKYXV0b2NvbXBsZXRlPSJvZmYiCj4KCjwvZGl2PgoKPCEtLSBJTlBVVCBQQVNTV09SRCAtLT4KPGRpdiBjbGFzcz0iaW5wdXQtZ3JvdXAiPgoKPGlucHV0CnR5cGU9InBhc3N3b3JkIgppZD0icGFzc3dvcmQiCnBsYWNlaG9sZGVyPSJQQVNTV09SRCIKPgoKPC9kaXY+Cgo8IS0tIEJVVFRPTiBMT0dJTiAtLT4KPGJ1dHRvbiBjbGFzcz0iYnRuLWxvZ2luLWFwcCIgb25jbGljaz0ibG9naW5BcHAoKSI+CkxPR0lOCjwvYnV0dG9uPgoKPCEtLSBCVVRUT04gTE9HT1VUIC0tPgo8YQpocmVmPSJodHRwczovL2RpMnRib2l0ODEuZ2l0aHViLmlvL0VTUC1QT1NJTkQvIgpjbGFzcz0iYnRuLWtlbHVhci1sb2dpbiIKPgpMT0dPVVQKPC9hPgoKPGRpdiBpZD0ibG9naW5Ob3RpZiI+PC9kaXY+Cgo8L2Rpdj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0iaGVhZGVyIj4KCjxkaXYgY2xhc3M9ImxvZ28td3JhcHBlciI+CjxkaXYgY2xhc3M9ImxvZ28tY2lyY2xlIj4KPGltZyBzcmM9IlNQWC1PVVRCT1VORC5wbmciIGFsdD0iTG9nbyI+CjwvZGl2Pgo8L2Rpdj4KCjxhIGhyZWY9Imh0dHBzOi8vZGkydGJvaXQ4MS5naXRodWIuaW8vRVNQLVBPU0lORC8iIGlkPSJidG5LZWx1YXIiPgpLRUxVQVIKPC9hPgoKPGRpdiBjbGFzcz0iaGVhZGVyLXRpdGxlIj4KQlVLVEkgU0VSQUggS0lSSU0gKCBSNyApPGJyPgpQT1NJTkQg4p6cIEVTUAo8L2Rpdj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0iY29udGFpbmVyIj4KCjxkaXYgY2xhc3M9ImNhcmQiPgoKPGxhYmVsPlRBTkdHQUw8L2xhYmVsPgo8aW5wdXQgdHlwZT0idGV4dCIgaWQ9InRhbmdnYWwiIHJlYWRvbmx5PgoKPGxhYmVsPk5BTUEgUEVUVUdBUyBSNzwvbGFiZWw+CjxpbnB1dCB0eXBlPSJ0ZXh0IiBpZD0icGV0dWdhcyI+Cgo8bGFiZWw+TkFNQSBEUklWRVI8L2xhYmVsPgo8aW5wdXQgdHlwZT0idGV4dCIgaWQ9ImRyaXZlciI+Cgo8bGFiZWw+Tk8gUE9MSVNJPC9sYWJlbD4KPGlucHV0IHR5cGU9InRleHQiIGlkPSJub3BvbCI+Cgo8bGFiZWw+QU5HS1VUQU48L2xhYmVsPgo8aW5wdXQgdHlwZT0idGV4dCIgaWQ9ImFuZ2t1dGFuIj4KCjxsYWJlbD5NT0RFPC9sYWJlbD4KPGlucHV0IHR5cGU9InRleHQiIGlkPSJtb2RlIj4KCjxsYWJlbD5OTyBTVVJBVCBQRVJNT0hPTkFOIFJFVFVSPC9sYWJlbD4KPGlucHV0IHR5cGU9InRleHQiIGlkPSJub3N1cmF0Ij4KCjxkaXY+CjxsYWJlbD5UVUpVQU48L2xhYmVsPgo8aW5wdXQgdHlwZT0idGV4dCIgaWQ9InR1anVhbiIgcGxhY2Vob2xkZXI9IkNvbnRvaCA6IFBFS0FOQkFSVSAvIEpBS0FSVEEiPgo8L2Rpdj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0iY2FyZCI+Cgo8bGFiZWw+SW5wdXQgTm8gS2FudG9uZzwvbGFiZWw+Cgo8aW5wdXQgdHlwZT0idGV4dCIgaWQ9Im1hbnVhbEJhcmNvZGUiIHBsYWNlaG9sZGVyPSJTY2FuIC8gS2V0aWsgYmFyY29kZSBsYWx1IEVudGVyIj4KCjxidXR0b24gY2xhc3M9ImJ0bi1vcmFuZ2UiIG9uY2xpY2s9InRhbWJhaE1hbnVhbCgpIj4KVGFtYmFoIE5vIEthbnRvbmcKPC9idXR0b24+Cgo8L2Rpdj4KCjxkaXYgY2xhc3M9ImNhcmQiPgoKPGRpdiBpZD0ic2NhbkNvdW50ZXIiPgpUb3RhbCBTY2FuIEJlcmhhc2lsIDogMAo8L2Rpdj4KCjxkaXYgaWQ9Im5vdGlmIj48L2Rpdj4KCjxkaXYgaWQ9InJlYWRlciI+PC9kaXY+Cgo8ZGl2IGlkPSJsYXN0U2NhbiI+PC9kaXY+Cgo8L2Rpdj4KCjxkaXYgY2xhc3M9ImNhcmQiPgoKPHRhYmxlIGlkPSJ0YWJlbERhdGEiPgoKPHRyPgo8dGg+Tm88L3RoPgo8dGg+S2FudG9uZzwvdGg+Cjx0aD5CZXJhdCAoS0cpPC90aD4KPHRoPkVkaXQ8L3RoPgo8dGg+SGFwdXM8L3RoPgo8L3RyPgoKPC90YWJsZT4KCjxkaXYgY2xhc3M9InRvdGFsLWJveCI+ClRvdGFsIEJlcmF0Ogo8c3BhbiBpZD0idG90YWxCZXJhdCI+MDwvc3Bhbj4gS0cKPC9kaXY+Cgo8L2Rpdj4KCjxkaXYgY2xhc3M9ImNhcmQiPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLWRhbmdlciIgb25jbGljaz0iYnVrYUhhcHVzU2VtdWEoKSI+CkhhcHVzIFNlbXVhCjwvYnV0dG9uPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLXN1Y2Nlc3MiIG9uY2xpY2s9InByaW50UERGKCkiPgpQcmludCAvIFNhdmUgUERGCjwvYnV0dG9uPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLWV4Y2VsIiBvbmNsaWNrPSJleHBvcnRFeGNlbCgpIj4KRXhwb3J0IEV4Y2VsCjwvYnV0dG9uPgoKPCEtLSBUQU1CQUhLQU4gREkgU0lOSSAtLT4KPGJ1dHRvbgppZD0iYnRuSW1wb3J0QkMiCm9uY2xpY2s9ImJ1a2FQYXNzd29yZEJDKCkiCmNsYXNzPSJidG4tYmMiPgrwn5OmIElNUE9SVCBCQwo8L2J1dHRvbj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0iY2FyZCB0dGQtY2FyZCI+Cgo8aDQ+VGFuZGEgVGFuZ2FuIFBlbmVyaW1hPC9oND4KCjxjYW52YXMgaWQ9InNpZ25hdHVyZSIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNTAiPjwvY2FudmFzPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLXByaW1hcnkiIG9uY2xpY2s9ImNsZWFyU2lnbmF0dXJlKCkiPgpDbGVhciBUYW5kYSBUYW5nYW4KPC9idXR0b24+Cgo8L2Rpdj4KCjxkaXYKaWQ9Imhpc3RvcnlDb250YWluZXIiCmNsYXNzPSJjYXJkIGhpc3RvcnktY2FyZCI+Cgo8ZGl2IGNsYXNzPSJoaXN0b3J5LWhlYWRlciI+Cgo8ZGl2IGNsYXNzPSJoaXN0b3J5LWljb24iPgrwn5OLCjwvZGl2PgoKPGgyIGNsYXNzPSJoaXN0b3J5LXRpdGxlIj4KSElTVE9SWSBEQVRBIFI3CjwvaDI+Cgo8cCBjbGFzcz0iaGlzdG9yeS1zdWJ0aXRsZSI+ClBpbGloIHRhbmdnYWwgdW50dWsgbWVtdWxpaGthbiBkYXRhCjwvcD4KCjxzZWxlY3QgaWQ9Imhpc3RvcnlUYW5nZ2FsIiBjbGFzcz0iaGlzdG9yeS1zZWxlY3QiPgoKPG9wdGlvbiB2YWx1ZT0iIiBzZWxlY3RlZCBkaXNhYmxlZD4K8J+ThSBQSUxJSCBUQU5HR0FMIEhJU1RPUlkKPC9vcHRpb24+Cgo8L3NlbGVjdD4KCjxidXR0b24KaWQ9ImJ0bkhhcHVzSGlzdG9yeSIKb25jbGljaz0iaGFwdXNIaXN0b3J5VGFuZ2dhbCgpIgpzdHlsZT0iCndpZHRoOjEwMCU7Cm1hcmdpbi10b3A6MTJweDsKcGFkZGluZzoxMnB4Owpib3JkZXI6bm9uZTsKYm9yZGVyLXJhZGl1czoxMnB4OwpiYWNrZ3JvdW5kOiNkYzI2MjY7CmNvbG9yOndoaXRlOwpmb250LXdlaWdodDo3MDA7CmN1cnNvcjpwb2ludGVyOwpmb250LXNpemU6MTRweDsKIj4K8J+Xke+4jyBIQVBVUyBISVNUT1JZICggUGlsaWggVGFuZ2dhbCApCjwvYnV0dG9uPgoKPC9kaXY+Cgo8ZGl2IGlkPSJoaXN0b3J5TGlzdCI+PC9kaXY+Cgo8L2Rpdj4KCjxkaXYgY2xhc3M9ImNhcmQgdHRkLWNhcmQiPgoKPGg0PlRhbmRhIFRhbmdhbiBQZW5lcmltYTwvaDQ+Cgo8Y2FudmFzIGlkPSJzaWduYXR1cmUiIHdpZHRoPSIzMDAiIGhlaWdodD0iMTUwIj48L2NhbnZhcz4KCjxidXR0b24gY2xhc3M9ImJ0bi1wcmltYXJ5IiBvbmNsaWNrPSJjbGVhclNpZ25hdHVyZSgpIj4KQ2xlYXIgVGFuZGEgVGFuZ2FuCjwvYnV0dG9uPgoKPC9kaXY+Cgo8L2Rpdj4KCjwhLS0gPT09PT09PT09PT09PT09PT0gQk9YIElOUFVUIEJFUkFUID09PT09PT09PT09PT09PT09IC0tPgoKPGRpdiBpZD0iYm94QmVyYXQiIGNsYXNzPSJiZXJhdC1vdmVybGF5Ij4KCjxkaXYgY2xhc3M9ImJlcmF0LW1vZGFsIj4KCjxkaXYgY2xhc3M9ImJlcmF0LXRpdGxlIj4KSU5QVVQgQkVSQVQgS0FOVE9ORwo8L2Rpdj4KCjxkaXYgaWQ9ImJhcmNvZGVCZXJhdCIgY2xhc3M9ImJlcmF0LWJhcmNvZGUiPjwvZGl2PgoKPGlucHV0CnR5cGU9Im51bWJlciIKaWQ9ImlucHV0QmVyYXRLZyIKcGxhY2Vob2xkZXI9Ik1hc3Vra2FuIEJlcmF0IChLRykiCj4KCjxkaXYgY2xhc3M9ImJlcmF0LWJ1dHRvbnMiPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLWRhbmdlciIgb25jbGljaz0iYmF0YWxCZXJhdCgpIj4KQkFUQUwKPC9idXR0b24+Cgo8YnV0dG9uIGNsYXNzPSJidG4tc3VjY2VzcyIgb25jbGljaz0ic2ltcGFuQmVyYXQoKSI+ClNJTVBBTgo8L2J1dHRvbj4KCjwvZGl2PgoKPC9kaXY+Cgo8L2Rpdj4KCjwhLS0gPT09PT09PT09PT09PT09PT0gS09ORklSTUFTSSBIQVBVUyBCQVJJUyA9PT09PT09PT09PT09PT09PSAtLT4KCjxkaXYgaWQ9ImNvbmZpcm1EZWxldGVCb3giIGNsYXNzPSJiZXJhdC1vdmVybGF5Ij4KCjxkaXYgY2xhc3M9ImJlcmF0LW1vZGFsIj4KCjxkaXYgY2xhc3M9ImJlcmF0LXRpdGxlIj4K4pqg77iPIEhBUFVTIERBVEEKPC9kaXY+Cgo8ZGl2IGlkPSJjb25maXJtVGV4dCI+CllBS0lOIE5PIEtBTlRPTkcgSU5JIERJIEhBUFVTPz8/CjwvZGl2PgoKPGRpdiBjbGFzcz0iYmVyYXQtYnV0dG9ucyI+Cgo8YnV0dG9uIGNsYXNzPSJidG4tcHJpbWFyeSIgb25jbGljaz0iYmF0YWxIYXB1cygpIj4KQkFUQUwKPC9idXR0b24+Cgo8YnV0dG9uIGNsYXNzPSJidG4tZGFuZ2VyIiBvbmNsaWNrPSJsYW5qdXRIYXB1cygpIj4KSEFQVVMKPC9idXR0b24+Cgo8L2Rpdj4KCjwvZGl2PgoKPC9kaXY+Cgo8IS0tID09PT09PT09PT09PT09PT09IEtPTkZJUk1BU0kgSEFQVVMgU0VNVUEgPT09PT09PT09PT09PT09PT0gLS0+Cgo8ZGl2IGlkPSJjb25maXJtSGFwdXNTZW11YUJveCIgY2xhc3M9ImJlcmF0LW92ZXJsYXkiPgoKPGRpdiBjbGFzcz0iYmVyYXQtbW9kYWwiPgoKPGRpdiBjbGFzcz0iYmVyYXQtdGl0bGUiPgrimqDvuI8gSEFQVVMgU0VNVUEgREFUQQo8L2Rpdj4KCjxkaXY+ClNlbXVhIGRhdGEga2FudG9uZywgYmVyYXQsIGRhbiBmb3JtIGFrYW4gZGloYXB1cy4KPGJyPjxicj4KCjxiIHN0eWxlPSJjb2xvcjojRkY2QTAwIj4KWWFraW4gaW5naW4gbWVsYW5qdXRrYW4/CjwvYj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0iYmVyYXQtYnV0dG9ucyI+Cgo8YnV0dG9uIGNsYXNzPSJidG4tcHJpbWFyeSIgb25jbGljaz0iYmF0YWxIYXB1c1NlbXVhKCkiPgpCQVRBTAo8L2J1dHRvbj4KCjxidXR0b24gY2xhc3M9ImJ0bi1kYW5nZXIiIG9uY2xpY2s9Imxhbmp1dEhhcHVzU2VtdWEoKSI+CkhBUFVTIFNFTVVBCjwvYnV0dG9uPgoKPC9kaXY+Cgo8L2Rpdj4KCjwvZGl2PgoKCjwhLS0gPT09PT09PT09PT09PT09PT0gUEFTU1dPUkQgQkMgPT09PT09PT09PT09PT09PT0gLS0+Cgo8ZGl2IGlkPSJwYXNzd29yZEJDQm94IiBjbGFzcz0icGFzc3dvcmQtb3ZlcmxheSIgc3R5bGU9ImRpc3BsYXk6bm9uZTsiPgoKPGRpdiBjbGFzcz0icGFzc3dvcmQtbW9kYWwiPgoKPGRpdiBjbGFzcz0icGFzc3dvcmQtaWNvbiI+CvCflJAKPC9kaXY+Cgo8ZGl2IGNsYXNzPSJwYXNzd29yZC10aXRsZSI+CkFLU0VTIElNUE9SVCBCQwo8L2Rpdj4KCjxkaXYgY2xhc3M9InBhc3N3b3JkLXN1YiI+Ck1hc3Vra2FuIFBhc3N3b3JkIFVudHVrIE1lbGFuanV0a2FuCjwvZGl2PgoKPGlucHV0CnR5cGU9InBhc3N3b3JkIgppZD0icGFzc3dvcmRCQ0lucHV0IgpwbGFjZWhvbGRlcj0iTWFzdWtrYW4gUGFzc3dvcmQiCi8+Cgo8ZGl2IGlkPSJwYXNzd29yZEVycm9yIiBjbGFzcz0icGFzc3dvcmQtZXJyb3IiPjwvZGl2PgoKPGRpdiBjbGFzcz0icGFzc3dvcmQtYnV0dG9ucyI+Cgo8YnV0dG9uCmNsYXNzPSJidG4tYmF0YWwtcGFzcyIKb25jbGljaz0idHV0dXBQYXNzd29yZEJDKCkiPgpCQVRBTAo8L2J1dHRvbj4KCjxidXR0b24KY2xhc3M9ImJ0bi1sb2dpbi1wYXNzIgpvbmNsaWNrPSJjZWtQYXNzd29yZEJDKCkiPgpNQVNVSwo8L2J1dHRvbj4KCjwvZGl2PgoKPC9kaXY+Cgo8L2Rpdj4KCjwhLS0gPT09PT09PT09PT09PT09PT0gTU9EQUwgSU1QT1JUIEJDID09PT09PT09PT09PT09PT09IC0tPgo8ZGl2IGlkPSJtb2RhbEJDIiBjbGFzcz0ibW9kYWwtYmMiIHN0eWxlPSJkaXNwbGF5Om5vbmU7Ij4KCjxkaXYgY2xhc3M9Im1vZGFsLWNvbnRlbnQtYmMiPgoKPGRpdiBjbGFzcz0ibW9kYWwtaGVhZGVyLWJjIj4KCjxkaXY+CjxoMj7wn5OmIElNUE9SVCBEQVRBIEJDPC9oMj4KPHA+VXBsb2FkIGZpbGUgRXhjZWwgZGFmdGFyIGthbnRvbmcgQkM8L3A+CjwvZGl2PgoKPGJ1dHRvbiBjbGFzcz0iY2xvc2UtYmMiIG9uY2xpY2s9InR1dHVwTW9kYWxCQygpIj7inJU8L2J1dHRvbj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0ibW9kYWwtYm9keS1iYyI+Cgo8ZGl2IGNsYXNzPSJ1cGxvYWQtYXJlYS1iYyI+Cgo8aW5wdXQgdHlwZT0iZmlsZSIgaWQ9ImZpbGVCQyIgYWNjZXB0PSIueGxzeCwueGxzIiBoaWRkZW4+Cgo8ZGl2IGNsYXNzPSJ1cGxvYWQtaWNvbiI+8J+TgTwvZGl2PgoKPGRpdiBjbGFzcz0idXBsb2FkLXRleHQiPgpEcmFnIC8gUGlsaWggRmlsZSBFeGNlbCBCQwo8L2Rpdj4KCjxkaXYgY2xhc3M9InVwbG9hZC1zdWIiPgpGb3JtYXQgOiBYTFNYIC8gWExTCjwvZGl2PgoKPGJ1dHRvbiBjbGFzcz0iYnRuLXVwbG9hZC1iYyIKb25jbGljaz0iZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZpbGVCQycpLmNsaWNrKCkiPgpQSUxJSCBGSUxFCjwvYnV0dG9uPgoKPC9kaXY+Cgo8ZGl2IGlkPSJpbmZvQkMiIGNsYXNzPSJpbmZvLWJjIj4KQmVsdW0gYWRhIGZpbGUgZGlwaWxpaAo8L2Rpdj4KCjwvZGl2PgoKPGRpdiBjbGFzcz0ibW9kYWwtZm9vdGVyLWJjIj4KCjxidXR0b24gY2xhc3M9ImJ0bi1iYXRhbC1iYyIKb25jbGljaz0idHV0dXBNb2RhbEJDKCkiPgpCQVRBTAo8L2J1dHRvbj4KCjxidXR0b24gY2xhc3M9ImJ0bi1oYXB1cy1iYyIKb25jbGljaz0iaGFwdXNEYXRhQkMoKSI+CkhBUFVTIEJDCjwvYnV0dG9uPgoKPGJ1dHRvbiBjbGFzcz0iYnRuLWtpcmltLWJjIgpvbmNsaWNrPSJraXJpbURhdGFCQygpIj4KS0lSSU0KPC9idXR0b24+Cgo8L2Rpdj4KCjwvZGl2PgoKPC9kaXY+Cgo8IS0tIEpTIC0tPgo8c2NyaXB0IHNyYz0iZGF0YWJhc2UuanMiPjwvc2NyaXB0Pgo8c2NyaXB0IHNyYz0iYXBwLmpzIj48L3NjcmlwdD4KCjxkaXYgaWQ9ImVkaXRCb3giCnN0eWxlPSIKZGlzcGxheTpub25lOwpwb3NpdGlvbjpmaXhlZDsKdG9wOjA7CmxlZnQ6MDsKcmlnaHQ6MDsKYm90dG9tOjA7CmJhY2tncm91bmQ6cmdiYSgwLDAsMCwuNSk7Cmp1c3RpZnktY29udGVudDpjZW50ZXI7CmFsaWduLWl0ZW1zOmNlbnRlcjsKei1pbmRleDo5OTk5OTsKIj4KCjxkaXYgY2xhc3M9ImVkaXQtbW9kYWwiPgoKPGgzIGNsYXNzPSJlZGl0LXRpdGxlIj4K4pyP77iPIEVESVQgREFUQSBLQU5UT05HCjwvaDM+Cgo8bGFiZWw+Tm8gS2FudG9uZzwvbGFiZWw+Cgo8aW5wdXQKaWQ9ImVkaXRCYXJjb2RlIgp0eXBlPSJ0ZXh0IgpzdHlsZT0iCndpZHRoOjEwMCU7CnBhZGRpbmc6MTBweDsKbWFyZ2luLWJvdHRvbToxMHB4OwoiPgoKPGxhYmVsPkJlcmF0IChLRyk8L2xhYmVsPgoKPGlucHV0CmlkPSJlZGl0QmVyYXQiCnR5cGU9Im51bWJlciIKc3RlcD0iMC4wMSIKc3R5bGU9Igp3aWR0aDoxMDAlOwpwYWRkaW5nOjEwcHg7Cm1hcmdpbi1ib3R0b206MTVweDsKIj4KCjxidXR0b24Kb25jbGljaz0ic2ltcGFuRWRpdERhdGEoKSI+CvCfkr4gU2ltcGFuCjwvYnV0dG9uPgoKPGJ1dHRvbgpvbmNsaWNrPSJiYXRhbEVkaXREYXRhKCkiPgrinYwgQmF0YWwKPC9idXR0b24+Cgo8L2Rpdj4KCjwvZGl2PgoKPC9ib2R5Pgo8L2h0bWw+Cg==";
+<div id="loginOverlay">
 
-document.open();
-document.write(atob(data));
-document.close();
+<div class="login-bg"></div>
 
-</script>
+<div class="login-box">
+
+<div class="login-logo">
+<img src="SPX-OUTBOUND.png">
+</div>
+
+<h1>R7 POSIND</h1>
+
+<p>
+PROOF OF HANDOVER TO ESP
+</p>
+
+<!-- INPUT USER -->
+<div class="input-group">
+
+<input
+type="text"
+id="username"
+placeholder="USERNAME"
+autocomplete="off"
+>
+
+</div>
+
+<!-- INPUT PASSWORD -->
+<div class="input-group">
+
+<input
+type="password"
+id="password"
+placeholder="PASSWORD"
+>
+
+</div>
+
+<!-- BUTTON LOGIN -->
+<button class="btn-login-app" onclick="loginApp()">
+LOGIN
+</button>
+
+<!-- BUTTON LOGOUT -->
+<a
+href="https://di2tboit81.github.io/ESP-POSIND/"
+class="btn-keluar-login"
+>
+LOGOUT
+</a>
+
+<div id="loginNotif"></div>
+
+</div>
+
+</div>
+
+<div class="header">
+
+<div class="logo-wrapper">
+<div class="logo-circle">
+<img src="SPX-OUTBOUND.png" alt="Logo">
+</div>
+</div>
+
+<a href="https://di2tboit81.github.io/ESP-POSIND/" id="btnKeluar">
+KELUAR
+</a>
+
+<div class="header-title">
+BUKTI SERAH KIRIM ( R7 )<br>
+POSIND ➜ ESP
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="card">
+
+<label>TANGGAL</label>
+<input type="text" id="tanggal" readonly>
+
+<label>NAMA PETUGAS R7</label>
+<input type="text" id="petugas">
+
+<label>NAMA DRIVER</label>
+<input type="text" id="driver">
+
+<label>NO POLISI</label>
+<input type="text" id="nopol">
+
+<label>ANGKUTAN</label>
+<input type="text" id="angkutan">
+
+<label>MODE</label>
+<input type="text" id="mode">
+
+<label>NO SURAT PERMOHONAN RETUR</label>
+<input type="text" id="nosurat">
+
+<div>
+<label>TUJUAN</label>
+<input type="text" id="tujuan" placeholder="Contoh : PEKANBARU / JAKARTA">
+</div>
+
+</div>
+
+<div class="card">
+
+<label>Input No Kantong</label>
+
+<input type="text" id="manualBarcode" placeholder="Scan / Ketik barcode lalu Enter">
+
+<button class="btn-orange" onclick="tambahManual()">
+Tambah No Kantong
+</button>
+
+</div>
+
+<div class="card">
+
+<div id="scanCounter">
+Total Scan Berhasil : 0
+</div>
+
+<div id="notif"></div>
+
+<div id="reader"></div>
+
+<div id="lastScan"></div>
+
+</div>
+
+<div class="card">
+
+<table id="tabelData">
+
+<tr>
+<th>No</th>
+<th>Kantong</th>
+<th>Berat (KG)</th>
+<th>Edit</th>
+<th>Hapus</th>
+</tr>
+
+</table>
+
+<div class="total-box">
+Total Berat:
+<span id="totalBerat">0</span> KG
+</div>
+
+</div>
+
+<div class="card">
+
+<button class="btn-danger" onclick="bukaHapusSemua()">
+Hapus Semua
+</button>
+
+<button class="btn-success" onclick="printPDF()">
+Print / Save PDF
+</button>
+
+<button class="btn-excel" onclick="exportExcel()">
+Export Excel
+</button>
+
+<!-- TAMBAHKAN DI SINI -->
+<button
+id="btnImportBC"
+onclick="bukaPasswordBC()"
+class="btn-bc">
+📦 IMPORT BC
+</button>
+
+</div>
+
+<div class="card ttd-card">
+
+<h4>Tanda Tangan Penerima</h4>
+
+<canvas id="signature" width="300" height="150"></canvas>
+
+<button class="btn-primary" onclick="clearSignature()">
+Clear Tanda Tangan
+</button>
+
+</div>
+
+<div
+id="historyContainer"
+class="card history-card">
+
+<div class="history-header">
+
+<div class="history-icon">
+📋
+</div>
+
+<h2 class="history-title">
+HISTORY DATA R7
+</h2>
+
+<p class="history-subtitle">
+Pilih tanggal untuk memulihkan data
+</p>
+
+<select id="historyTanggal" class="history-select">
+
+<option value="" selected disabled>
+📅 PILIH TANGGAL HISTORY
+</option>
+
+</select>
+
+<button
+id="btnHapusHistory"
+onclick="hapusHistoryTanggal()"
+style="
+width:100%;
+margin-top:12px;
+padding:12px;
+border:none;
+border-radius:12px;
+background:#dc2626;
+color:white;
+font-weight:700;
+cursor:pointer;
+font-size:14px;
+">
+🗑️ HAPUS HISTORY ( Pilih Tanggal )
+</button>
+
+</div>
+
+<div id="historyList"></div>
+
+</div>
+
+<div class="card ttd-card">
+
+<h4>Tanda Tangan Penerima</h4>
+
+<canvas id="signature" width="300" height="150"></canvas>
+
+<button class="btn-primary" onclick="clearSignature()">
+Clear Tanda Tangan
+</button>
+
+</div>
+
+</div>
+
+<!-- ================= BOX INPUT BERAT ================= -->
+
+<div id="boxBerat" class="berat-overlay">
+
+<div class="berat-modal">
+
+<div class="berat-title">
+INPUT BERAT KANTONG
+</div>
+
+<div id="barcodeBerat" class="berat-barcode"></div>
+
+<input
+type="number"
+id="inputBeratKg"
+placeholder="Masukkan Berat (KG)"
+>
+
+<div class="berat-buttons">
+
+<button class="btn-danger" onclick="batalBerat()">
+BATAL
+</button>
+
+<button class="btn-success" onclick="simpanBerat()">
+SIMPAN
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= KONFIRMASI HAPUS BARIS ================= -->
+
+<div id="confirmDeleteBox" class="berat-overlay">
+
+<div class="berat-modal">
+
+<div class="berat-title">
+⚠️ HAPUS DATA
+</div>
+
+<div id="confirmText">
+YAKIN NO KANTONG INI DI HAPUS???
+</div>
+
+<div class="berat-buttons">
+
+<button class="btn-primary" onclick="batalHapus()">
+BATAL
+</button>
+
+<button class="btn-danger" onclick="lanjutHapus()">
+HAPUS
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= KONFIRMASI HAPUS SEMUA ================= -->
+
+<div id="confirmHapusSemuaBox" class="berat-overlay">
+
+<div class="berat-modal">
+
+<div class="berat-title">
+⚠️ HAPUS SEMUA DATA
+</div>
+
+<div>
+Semua data kantong, berat, dan form akan dihapus.
+<br><br>
+
+<b style="color:#FF6A00">
+Yakin ingin melanjutkan?
+</b>
+
+</div>
+
+<div class="berat-buttons">
+
+<button class="btn-primary" onclick="batalHapusSemua()">
+BATAL
+</button>
+
+<button class="btn-danger" onclick="lanjutHapusSemua()">
+HAPUS SEMUA
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ================= PASSWORD BC ================= -->
+
+<div id="passwordBCBox" class="password-overlay" style="display:none;">
+
+<div class="password-modal">
+
+<div class="password-icon">
+🔐
+</div>
+
+<div class="password-title">
+AKSES IMPORT BC
+</div>
+
+<div class="password-sub">
+Masukkan Password Untuk Melanjutkan
+</div>
+
+<input
+type="password"
+id="passwordBCInput"
+placeholder="Masukkan Password"
+/>
+
+<div id="passwordError" class="password-error"></div>
+
+<div class="password-buttons">
+
+<button
+class="btn-batal-pass"
+onclick="tutupPasswordBC()">
+BATAL
+</button>
+
+<button
+class="btn-login-pass"
+onclick="cekPasswordBC()">
+MASUK
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ================= MODAL IMPORT BC ================= -->
+<div id="modalBC" class="modal-bc" style="display:none;">
+
+<div class="modal-content-bc">
+
+<div class="modal-header-bc">
+
+<div>
+<h2>📦 IMPORT DATA BC</h2>
+<p>Upload file Excel daftar kantong BC</p>
+</div>
+
+<button class="close-bc" onclick="tutupModalBC()">✕</button>
+
+</div>
+
+<div class="modal-body-bc">
+
+<div class="upload-area-bc">
+
+<input type="file" id="fileBC" accept=".xlsx,.xls" hidden>
+
+<div class="upload-icon">📁</div>
+
+<div class="upload-text">
+Drag / Pilih File Excel BC
+</div>
+
+<div class="upload-sub">
+Format : XLSX / XLS
+</div>
+
+<button class="btn-upload-bc"
+onclick="document.getElementById('fileBC').click()">
+PILIH FILE
+</button>
+
+</div>
+
+<div id="infoBC" class="info-bc">
+Belum ada file dipilih
+</div>
+
+</div>
+
+<div class="modal-footer-bc">
+
+<button class="btn-batal-bc"
+onclick="tutupModalBC()">
+BATAL
+</button>
+
+<button class="btn-hapus-bc"
+onclick="hapusDataBC()">
+HAPUS BC
+</button>
+
+<button class="btn-kirim-bc"
+onclick="kirimDataBC()">
+KIRIM
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- JS -->
+<script src="database.js"></script>
+<script src="app.js"></script>
+
+<div id="editBox"
+style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:rgba(0,0,0,.5);
+justify-content:center;
+align-items:center;
+z-index:99999;
+">
+
+<div class="edit-modal">
+
+<h3 class="edit-title">
+✏️ EDIT DATA KANTONG
+</h3>
+
+<label>No Kantong</label>
+
+<input
+id="editBarcode"
+type="text"
+style="
+width:100%;
+padding:10px;
+margin-bottom:10px;
+">
+
+<label>Berat (KG)</label>
+
+<input
+id="editBerat"
+type="number"
+step="0.01"
+style="
+width:100%;
+padding:10px;
+margin-bottom:15px;
+">
+
+<button
+onclick="simpanEditData()">
+💾 Simpan
+</button>
+
+<button
+onclick="batalEditData()">
+❌ Batal
+</button>
+
+</div>
+
+</div>
 
 </body>
 </html>
